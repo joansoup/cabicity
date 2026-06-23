@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Volume2, VolumeX, ChevronRight } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX, ChevronRight, X, QrCode, Loader2 } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
 import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
@@ -34,7 +34,7 @@ function Nav() {
   const [trip, setT] = useState<TripState | null>(null);
   const [idx, setIdx] = useState(0);
   const [llegado, setLlegado] = useState(false);
-  const [escaneando, setEscaneando] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
   const [voz, setVoz] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("ct-voz") === "1";
@@ -93,20 +93,35 @@ function Nav() {
     }
   };
 
-  // Escaneo de QR de la BiciMAD: cámara falsa que "lee" el código y desbloquea.
-  const escanearQr = () => {
-    if (escaneando) return;
-    setEscaneando(true);
+  // Cámara QR (BiciMAD): al abrir la modal, "lee" el código automáticamente y
+  // avanza al siguiente paso (bici desbloqueada). El usuario puede cerrarla.
+  useEffect(() => {
+    if (!qrOpen) return;
     decir("Escaneando el código QR");
-    setTimeout(() => {
-      setEscaneando(false);
+    const t = setTimeout(() => {
       decir("Bici desbloqueada. ¡A pedalear!");
+      setQrOpen(false);
       next();
-    }, 1900);
-  };
+    }, 2300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qrOpen]);
+
+  // Pasos que avanzan solos: p. ej. al detectar que la bici se ancló en el tótem.
+  useEffect(() => {
+    if (llegado || !actual?.paso.auto) return;
+    const t = setTimeout(() => next(), 2600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, llegado]);
 
   const op = trip?.seleccionada;
-  const geo = useMemo(() => (op ? buildRouteGeo(op, trip?.destino || op.id) : null), [op, trip?.destino]);
+  const destinoReal: LngLat | undefined =
+    trip?.destinoLng != null && trip?.destinoLat != null ? [trip.destinoLng, trip.destinoLat] : undefined;
+  const geo = useMemo(
+    () => (op ? buildRouteGeo(op, trip?.destino || op.id, destinoReal) : null),
+    [op, trip?.destino, destinoReal?.[0], destinoReal?.[1]]
+  );
 
   const rutaSegmentos: MapaRutaSegmento[] = useMemo(
     () =>
@@ -295,7 +310,17 @@ function Nav() {
               </div>
             )}
             {actual.paso.qr ? (
-              <QrScanner escaneando={escaneando} onScan={escanearQr} />
+              <button
+                onClick={() => setQrOpen(true)}
+                className="w-full h-14 rounded-[8px] bg-brand text-white font-bold text-[16px] flex items-center justify-center gap-2"
+              >
+                <QrCode size={20} /> Escanear QR
+              </button>
+            ) : actual.paso.auto ? (
+              <div className="w-full h-14 rounded-[8px] bg-field text-text-secondary font-bold text-[15px] flex items-center justify-center gap-2">
+                <Loader2 size={18} className="animate-spin" />
+                Detectando anclaje de la bici…
+              </div>
             ) : (
               <button
                 onClick={next}
@@ -307,50 +332,62 @@ function Nav() {
           </div>
 
         </div>
+
+        {qrOpen && <QrCameraModal onClose={() => setQrOpen(false)} />}
       </div>
     </PhoneFrame>
   );
 }
 
-// Cámara falsa de escaneo de QR para desbloquear la BiciMAD. Muestra un visor
-// con un QR simulado y una línea de escaneo animada; al pulsar "Escanear",
-// reproduce la lectura y continúa el viaje.
-function QrScanner({ escaneando, onScan }: { escaneando: boolean; onScan: () => void }) {
+// Cámara de escaneo de QR a pantalla completa (BiciMAD). Tiene botón de cierre
+// y "lee" el código automáticamente (lo gestiona el efecto de la pantalla, que
+// avanza al siguiente paso). Simula el visor de cámara con un QR y una línea
+// de escaneo animada.
+function QrCameraModal({ onClose }: { onClose: () => void }) {
   return (
-    <div className="flex flex-col gap-3">
-      <style>{`@keyframes ct-scan{0%{top:6%}50%{top:90%}100%{top:6%}}`}</style>
-      <div
-        className="relative mx-auto w-full max-w-[260px] aspect-square rounded-[20px] overflow-hidden"
-        style={{ background: "linear-gradient(135deg,#1c1c2e,#2c2150)" }}
-      >
-        {/* QR simulado */}
-        <div className="absolute inset-0 grid place-items-center">
-          <div className="w-[55%] aspect-square rounded-[10px] bg-white p-2.5" style={{ opacity: escaneando ? 1 : 0.92 }}>
-            <svg viewBox="0 0 100 100" className="w-full h-full" shapeRendering="crispEdges" aria-label="Código QR BiciMAD">
-              <rect width="100" height="100" fill="#fff" />
-              <path fill="#111" d="M10 10h25v25H10zM15 15v15h15V15zM65 10h25v25H65zM70 15v15h15V15zM10 65h25v25H10zM15 70v15h15V70z" />
-              <path fill="#111" d="M45 10h6v6h-6zM55 16h6v6h-6zM45 22h6v6h-6zM62 40h6v6h-6zM40 45h6v6h-6zM50 50h6v6h-6zM70 55h6v6h-6zM45 62h6v6h-6zM58 66h6v6h-6zM66 72h6v6h-6zM50 78h6v6h-6zM78 45h6v6h-6zM84 60h6v6h-6zM40 84h6v6h-6z" />
-            </svg>
-          </div>
-        </div>
-        {/* marco visor */}
-        <div className="absolute inset-5 rounded-[14px] border-2 border-white/70" />
-        {/* línea de escaneo */}
-        <div
-          className="absolute left-5 right-5 h-0.5 rounded-full"
-          style={{ background: "var(--brand)", boxShadow: "0 0 12px 2px var(--brand)", animation: escaneando ? "ct-scan 1s linear infinite" : "none", top: "6%", opacity: escaneando ? 1 : 0.4 }}
-        />
-        {escaneando && (
-          <div className="absolute bottom-3 left-0 right-0 text-center text-white text-[13px] font-bold">Leyendo QR…</div>
-        )}
+    <div
+      className="absolute inset-0 z-50 flex flex-col"
+      style={{ background: "linear-gradient(160deg,#15131f 0%,#241a44 100%)" }}
+    >
+      <style>{`@keyframes ct-scan{0%{top:8%}50%{top:86%}100%{top:8%}}`}</style>
+      {/* cabecera con cierre */}
+      <div className="flex items-center justify-between px-4 pt-12 pb-4">
+        <button
+          onClick={onClose}
+          aria-label="Cerrar"
+          className="w-10 h-10 rounded-full bg-white/15 grid place-items-center text-white"
+        >
+          <X size={22} />
+        </button>
+        <span className="text-white font-bold text-[16px]">Escanea la bici</span>
+        <span className="w-10" />
       </div>
-      <button
-        onClick={onScan}
-        disabled={escaneando}
-        className="w-full h-14 rounded-[8px] bg-brand text-white font-bold text-[16px] flex items-center justify-center gap-2 disabled:opacity-60"
-      >
-        {escaneando ? "Desbloqueando…" : "Escanear QR"}
-      </button>
+
+      {/* visor */}
+      <div className="flex-1 grid place-items-center px-8">
+        <div className="relative w-full max-w-[300px] aspect-square">
+          <div className="absolute inset-0 grid place-items-center">
+            <div className="w-[62%] aspect-square rounded-[12px] bg-white p-3">
+              <svg viewBox="0 0 100 100" className="w-full h-full" shapeRendering="crispEdges" aria-label="Código QR BiciMAD">
+                <rect width="100" height="100" fill="#fff" />
+                <path fill="#111" d="M10 10h25v25H10zM15 15v15h15V15zM65 10h25v25H65zM70 15v15h15V15zM10 65h25v25H10zM15 70v15h15V70z" />
+                <path fill="#111" d="M45 10h6v6h-6zM55 16h6v6h-6zM45 22h6v6h-6zM62 40h6v6h-6zM40 45h6v6h-6zM50 50h6v6h-6zM70 55h6v6h-6zM45 62h6v6h-6zM58 66h6v6h-6zM66 72h6v6h-6zM50 78h6v6h-6zM78 45h6v6h-6zM84 60h6v6h-6zM40 84h6v6h-6z" />
+              </svg>
+            </div>
+          </div>
+          {/* esquinas del visor */}
+          <div className="absolute inset-0 rounded-[20px]" style={{ boxShadow: "inset 0 0 0 3px rgba(255,255,255,0.85)" }} />
+          {/* línea de escaneo */}
+          <div
+            className="absolute left-3 right-3 h-0.5 rounded-full"
+            style={{ background: "var(--brand)", boxShadow: "0 0 16px 3px var(--brand)", animation: "ct-scan 1.1s linear infinite", top: "8%" }}
+          />
+        </div>
+      </div>
+
+      <div className="text-center text-white/90 text-[15px] font-medium pb-16 px-8">
+        Apunta al código QR del manillar de la BiciMAD…
+      </div>
     </div>
   );
 }

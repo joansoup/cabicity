@@ -26,11 +26,11 @@ async function geocodeUno(q: string): Promise<[number, number] | undefined> {
   try {
     const token = getMapboxToken();
     const url =
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json` +
-      `?access_token=${token}&country=es&language=es&limit=1&proximity=-3.6708,40.449`;
+      `https://api.mapbox.com/search/searchbox/v1/forward?q=${encodeURIComponent(q)}` +
+      `&access_token=${token}&proximity=-3.6708,40.449&country=ES&language=es&limit=1`;
     const res = await fetch(url);
     const data = await res.json();
-    const c = data.features?.[0]?.center;
+    const c = data.features?.[0]?.geometry?.coordinates;
     return Array.isArray(c) ? [c[0], c[1]] : undefined;
   } catch { return undefined; }
 }
@@ -53,20 +53,26 @@ function BuscarPage() {
     const t = setTimeout(async () => {
       try {
         const token = getMapboxToken();
+        // Search Box API (cobertura de POIs/landmarks real: estadios, estaciones…)
         const url =
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json` +
-          `?access_token=${token}&autocomplete=true&country=es&language=es&limit=6` +
-          `&proximity=-3.6708,40.449&types=address,poi,place,locality,neighborhood`;
+          `https://api.mapbox.com/search/searchbox/v1/forward?q=${encodeURIComponent(q)}` +
+          `&access_token=${token}&proximity=-3.6708,40.449&country=ES&language=es&limit=6`;
         const res = await fetch(url, { signal: ctrl.signal });
         const data = await res.json();
         const feats: Sug[] = (data.features || []).map(
-          (f: { text?: string; place_name?: string; center?: [number, number] }) => ({
-            tipo: "reciente",
-            titulo: f.text || f.place_name || "",
-            sub: f.place_name || "",
-            lng: f.center?.[0],
-            lat: f.center?.[1],
-          })
+          (f: {
+            properties?: { name?: string; name_preferred?: string; full_address?: string; place_formatted?: string };
+            geometry?: { coordinates?: [number, number] };
+          }) => {
+            const p = f.properties || {};
+            return {
+              tipo: "reciente",
+              titulo: p.name || p.name_preferred || "",
+              sub: p.full_address || p.place_formatted || "",
+              lng: f.geometry?.coordinates?.[0],
+              lat: f.geometry?.coordinates?.[1],
+            };
+          }
         );
         if (feats.length) setSugerencias(feats);
       } catch { /* abortado o sin red: mantenemos lo que haya */ }

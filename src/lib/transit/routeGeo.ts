@@ -60,10 +60,18 @@ export interface RouteGeo {
   stepPositions: LngLat[]; // una posición por paso (acumulado por duración)
 }
 
-export function buildRouteGeo(op: Opcion, destinoTexto: string): RouteGeo {
+function lerp(a: LngLat, b: LngLat, f: number): LngLat {
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+}
+
+export function buildRouteGeo(op: Opcion, destinoTexto: string, destinoReal?: LngLat): RouteGeo {
   const seed = hashStr(destinoTexto || op.id);
   // Rumbo base 0-360 según destino
   let bearing = seed % 360;
+  // Distancia total para interpolar tramos sintéticos a lo largo de la línea
+  // real ORIGEN→destino (así los pines de inicio/intermedios/fin son reales).
+  const totalKm = op.tramos.reduce((s, t) => s + Math.max(0.1, t.distanciaKm), 0) || 1;
+  let cumKm = 0;
   // Distancia interurbana real fuera de Madrid: la dejamos en escala visual ≤ 6 km equivalentes
   // para que el mapa no se aleje a otra ciudad. AVE/Cercanías se representan a escala urbana.
   const escala = (km: number) => {
@@ -79,15 +87,23 @@ export function buildRouteGeo(op: Opcion, destinoTexto: string): RouteGeo {
 
   op.tramos.forEach((t, i) => {
     let segCoords: LngLat[];
+    const km = Math.max(0.1, t.distanciaKm);
     if (t.coords && t.coords.length >= 2) {
       // Trazado REAL del tramo (coordenadas de estaciones GTFS/red real).
       segCoords = t.coords as LngLat[];
+    } else if (destinoReal) {
+      // Tramo sintético anclado a la línea real ORIGEN→destino: el inicio, los
+      // transbordos y el fin caen sobre puntos reales (no aleatorios).
+      const a = lerp(SOL, destinoReal, cumKm / totalKm);
+      const b = lerp(SOL, destinoReal, (cumKm + km) / totalKm);
+      segCoords = [a, b];
     } else {
-      const km = escala(t.distanciaKm);
+      const escKm = escala(t.distanciaKm);
       // pequeño giro entre tramos para representar transbordo
       if (i > 0) bearing += ((seed >> (i * 3)) % 60) - 30;
-      segCoords = advance(cursor, km, bearing, seed + i, t.tipo === "andando" ? 0.2 : 0.5);
+      segCoords = advance(cursor, escKm, bearing, seed + i, t.tipo === "andando" ? 0.2 : 0.5);
     }
+    cumKm += km;
     segments.push({
       tramoIdx: i,
       tipo: t.tipo,

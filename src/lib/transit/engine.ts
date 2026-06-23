@@ -19,7 +19,8 @@ export type ModoTipo =
 export interface Paso {
   instruccion: string;
   duracionMin: number;
-  qr?: boolean; // paso de escaneo de QR (BiciMAD): la UI muestra cámara falsa
+  qr?: boolean; // paso de escaneo de QR (BiciMAD): la UI abre una cámara modal
+  auto?: boolean; // paso que avanza solo (p. ej. al detectar el anclaje de la bici)
 }
 
 export interface Tramo {
@@ -223,8 +224,8 @@ function tramoCercanias(distKm: number, seed: number): Tramo {
   };
 }
 
-function tramoAVE(distKm: number, seed: number): Tramo {
-  const destino = pick(["Sevilla Santa Justa", "Barcelona Sants", "Valencia Joaquín Sorolla", "Zaragoza Delicias", "Málaga María Zambrano", "Córdoba Central"], seed);
+function tramoAVE(distKm: number, seed: number, destinoNombre?: string): Tramo {
+  const destino = destinoNombre?.trim() || pick(["Sevilla Santa Justa", "Barcelona Sants", "Valencia Joaquín Sorolla", "Zaragoza Delicias", "Málaga María Zambrano", "Córdoba Central"], seed);
   const duracion = Math.max(90, Math.round((distKm / MODOS.ave.speed) * 60) + 15);
   return {
     tipo: "ave", titulo: `AVE Madrid Atocha → ${destino}`, subtitulo: "Renfe AVE",
@@ -245,7 +246,7 @@ function tramoBici(distKm: number): Tramo {
       { instruccion: "Camina hasta el tótem BiciMAD más cercano", duracionMin: 2 },
       { instruccion: "Escanea el código QR para desbloquear la bici", duracionMin: 1, qr: true },
       { instruccion: `Pedalea ${distKm.toFixed(1)} km hasta el tótem de destino`, duracionMin: dur - 1 },
-      { instruccion: "Ancla la bici en el tótem y camina a tu destino", duracionMin: 1 },
+      { instruccion: "Ancla la bici en el tótem de destino", duracionMin: 1, auto: true },
     ],
   };
 }
@@ -264,7 +265,7 @@ function tramoBus(distKm: number, seed: number): Tramo {
 }
 
 // --- builders de opciones --------------------------------------------------
-function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
+function opcionSimple(tipo: ModoTipo, distKm: number, seed: number, destinoNombre?: string): Opcion {
   const m = MODOS[tipo];
   const precio = round2(m.price(distKm));
   const co2 = round2(m.co2 * distKm);
@@ -280,7 +281,7 @@ function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
   } else if (tipo === "cercanias") {
     tramos = [tramoCercanias(distKm, seed)];
   } else if (tipo === "ave") {
-    tramos = [tramoAVE(distKm, seed)];
+    tramos = [tramoAVE(distKm, seed, destinoNombre)];
   } else if (tipo === "andando") {
     tramos = [tramoAndando(distKm, "tu destino")];
   } else if (tipo === "bicimad") {
@@ -296,7 +297,7 @@ function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
   };
 }
 
-function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: string): Opcion | null {
+function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: string, destinoNombre?: string): Opcion | null {
   const interurbano = distKm > 60;
   // Cabify a estación: tramo first/last mile ajustado para que el precio total
   // del combo cuadre con el dataset real (p. ej. Cabify+Metro ≈ 9,89 €).
@@ -328,7 +329,7 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
       let t: Tramo;
       if (m === "metro") t = tramoMetro(principalKm, seed);
       else if (m === "cercanias") t = tramoCercanias(principalKm, seed);
-      else if (m === "ave") t = tramoAVE(principalKm, seed);
+      else if (m === "ave") t = tramoAVE(principalKm, seed, destinoNombre);
       else if (m === "bus") t = tramoBus(principalKm, seed);
       else if (m === "andando") t = tramoAndando(principalKm, "tu destino");
       else t = tramoBici(principalKm);
@@ -527,15 +528,15 @@ export function generarOpciones(
     if (!incluir[m]) return;
     if (m === "metro" && metroReal) { opciones.push(metroReal); return; }
     if (m === "cercanias" && cercaniasReal) { opciones.push(cercaniasReal); return; }
-    opciones.push(opcionSimple(m, distKm, seed));
+    opciones.push(opcionSimple(m, distKm, seed, destino));
   });
 
   // Combos: solo cuando aportan valor real (interurbano, o trayectos largos en
   // los que un Cabify de primera/última milla a la estación ahorra tiempo).
   if (interurbano) {
-    const c1 = opcionCombo(["cabify", "ave", "cabify"], distKm, seed, "cabify-ave-cabify");
-    const c2 = opcionCombo(["cabify", "ave"], distKm, seed, "cabify-ave");
-    const c3 = opcionCombo(["ave", "cabify"], distKm, seed, "ave-cabify");
+    const c1 = opcionCombo(["cabify", "ave", "cabify"], distKm, seed, "cabify-ave-cabify", destino);
+    const c2 = opcionCombo(["cabify", "ave"], distKm, seed, "cabify-ave", destino);
+    const c3 = opcionCombo(["ave", "cabify"], distKm, seed, "ave-cabify", destino);
     [c1, c2, c3].forEach((c) => c && opciones.push(c));
   } else if (distKm >= 6) {
     const c = opcionCombo(["cabify", "metro"], distKm, seed, "cabify-metro");
