@@ -153,6 +153,7 @@ function RecogidaCabify() {
             centro={geo.origen}
             zoom={15}
             marcadores={marcadores}
+            ruta={rutaRecogida}
             ubicacionActual={geo.origen}
             vehiculo={{
               pos: carPos,
