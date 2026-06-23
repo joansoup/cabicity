@@ -40,7 +40,7 @@ function BuscarPage() {
         const url =
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json` +
           `?access_token=${token}&autocomplete=true&country=es&language=es&limit=6` +
-          `&proximity=-3.6736,40.4445&types=address,poi,place,locality,neighborhood`;
+          `&proximity=-3.6708,40.449&types=address,poi,place,locality,neighborhood`;
         const res = await fetch(url, { signal: ctrl.signal });
         const data = await res.json();
         const feats: Sug[] = (data.features || []).map(
