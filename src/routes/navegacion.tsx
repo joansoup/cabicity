@@ -5,7 +5,7 @@ import { ArrowLeft, Volume2, VolumeX, ChevronRight, X, QrCode, Loader2 } from "l
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
 import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
-import { ModoIcon, modoBrandBg } from "@/components/transit/ModoIcon";
+import { ModoChip } from "@/components/transit/ModoIcon";
 import { MetroLineBadge, extractMetroLinea, CercaniasLineBadge, extractCercaniasLinea } from "@/components/transit/MetroLineBadge";
 import type { Paso, Tramo } from "@/lib/transit/engine";
 import { buildRouteGeo, type LngLat } from "@/lib/transit/routeGeo";
@@ -260,9 +260,7 @@ function Nav() {
             ) : actual.tramo.tipo === "cercanias" && extractCercaniasLinea(actual.tramo.titulo) ? (
               <CercaniasLineBadge linea={extractCercaniasLinea(actual.tramo.titulo)!} size={48} />
             ) : (
-              <div className="w-12 h-12 rounded-full grid place-items-center flex-shrink-0" style={{ background: modoBrandBg(actual.tramo.tipo) }}>
-                <ModoIcon tipo={actual.tramo.tipo} size={26} />
-              </div>
+              <ModoChip tipo={actual.tramo.tipo} size={48} />
             )}
             <div className="flex-1">
               <div className="text-[11px] font-bold uppercase tracking-wide text-text-secondary">Paso {idx + 1} de {pasos.length}</div>
@@ -288,9 +286,7 @@ function Nav() {
                   ) : cercaniasLinea ? (
                     <CercaniasLineBadge linea={cercaniasLinea} size={32} />
                   ) : (
-                    <div className="w-8 h-8 rounded-full grid place-items-center" style={{ background: modoBrandBg(p.tramo.tipo) }}>
-                      <ModoIcon tipo={p.tramo.tipo} size={16} />
-                    </div>
+                    <ModoChip tipo={p.tramo.tipo} size={32} />
                   )}
                   <div className="flex-1 text-[14px] text-text-secondary truncate">{p.paso.instruccion}</div>
                   <span className="text-[15px] font-bold text-text">{fmtMin(p.paso.duracionMin)}</span>

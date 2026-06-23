@@ -66,30 +66,30 @@ function Resultados() {
   return (
     <PhoneFrame>
       <div className="absolute inset-0 flex flex-col bg-bg-subdued">
-        <div className="px-3 pt-3 pb-3 bg-bg border-b border-border flex flex-col gap-3">
-          <div className="flex items-center gap-2">
+        <div className="px-4 pt-3 pb-3 bg-bg border-b border-border flex flex-col gap-3">
+          <div className="flex items-center gap-3">
             <button onClick={() => navigate({ to: "/buscar" })} className="w-10 h-10 -ml-2 grid place-items-center shrink-0">
               <ArrowLeft size={22} />
             </button>
-            {/* Dos campos separados (origen / destino), como en la mayoría de apps */}
-            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+            {/* Campos idénticos a los de la pantalla de búsqueda (mismo Route builder) */}
+            <div className="flex-1 min-w-0 flex flex-col gap-2">
               <button
                 onClick={() => navigate({ to: "/buscar" })}
-                className="flex items-center gap-2.5 bg-field rounded-[8px] h-14 px-3 text-left"
+                className="flex items-center gap-2.5 bg-field rounded-[8px] h-14 pl-2 pr-4 border-2 border-transparent text-left"
               >
-                <img src="/icons/ic_set_address_1.svg" alt="" className="w-5 h-5 shrink-0" />
-                <span className="flex-1 min-w-0 text-[14px] text-text truncate">{trip.origen}</span>
+                <img src="/icons/ic_set_address_1.svg" alt="" className="w-6 h-6 shrink-0" />
+                <span className="flex-1 min-w-0 text-[16px] text-text truncate">{trip.origen}</span>
               </button>
               <button
                 onClick={() => navigate({ to: "/buscar" })}
-                className="flex items-center gap-2.5 bg-field rounded-[8px] h-14 px-3 text-left"
+                className="flex items-center gap-2.5 bg-field rounded-[8px] h-14 pl-2 pr-4 border-2 border-transparent text-left"
               >
-                <img src="/icons/ic_set_address_2.svg" alt="" className="w-5 h-5 shrink-0" />
-                <span className="flex-1 min-w-0 text-[14px] font-medium text-text truncate">{trip.destino}</span>
+                <img src="/icons/ic_set_address_2.svg" alt="" className="w-6 h-6 shrink-0" />
+                <span className="flex-1 min-w-0 text-[16px] text-text truncate">{trip.destino}</span>
               </button>
             </div>
           </div>
-          <div className="flex gap-2 overflow-x-auto -mx-3 px-3 pb-1">
+          <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
             {CHIPS.map((c) => (
               <button
                 key={c.id}

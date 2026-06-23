@@ -4,7 +4,7 @@ import { ArrowLeft, Clock, Leaf } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, type TripState } from "@/lib/transit/store";
 import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
-import { ModoIcon, modoBrandBg } from "@/components/transit/ModoIcon";
+import { ModoChip } from "@/components/transit/ModoIcon";
 
 export const Route = createFileRoute("/viaje")({
   component: Viaje,
@@ -75,9 +75,7 @@ function Viaje() {
             <ol className="flex flex-col gap-2">
               {op.tramos.map((t, i) => (
                 <li key={i} className="bg-surface rounded-[12px] p-3 flex items-center gap-3" style={{ boxShadow: "var(--shadow-resting)" }}>
-                  <div className="w-10 h-10 rounded-full grid place-items-center" style={{ background: modoBrandBg(t.tipo) }}>
-                    <ModoIcon tipo={t.tipo} size={22} />
-                  </div>
+                  <ModoChip tipo={t.tipo} size={40} />
                   <div className="flex-1 min-w-0">
                     <div className="text-[15px] font-medium text-text truncate">{t.titulo}</div>
                     {t.subtitulo && <div className="text-[13px] text-text-secondary truncate">{t.subtitulo}</div>}

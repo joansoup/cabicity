@@ -88,7 +88,7 @@ function HomePage() {
         </div>
 
         {/* carrusel de servicios */}
-        <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex gap-2 overflow-x-auto px-4 pt-2.5 pb-1 -mt-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {SERVICIOS.map((s) => {
             const active = servicio === s.id;
             return (
@@ -105,7 +105,7 @@ function HomePage() {
                   // Badge "NUEVO" del DS: centrado en el borde superior, morado
                   // oscuro #4A2B8D, radio 4, 11px bold blanco.
                   <span
-                    className="absolute -top-2 left-1/2 -translate-x-1/2 text-[11px] font-bold leading-4 px-2 rounded-[4px] text-white"
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 inline-flex items-center justify-center text-[11px] font-bold leading-none px-2 py-1 rounded-[4px] text-white"
                     style={{ background: "#4A2B8D" }}
                   >
                     NUEVO

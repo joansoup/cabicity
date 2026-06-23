@@ -91,13 +91,14 @@ function BuscarPage() {
     }
   }, []);
 
-  const submit = async () => {
-    if (!origen.trim() || !destino.trim()) return;
+  const submit = async (destOverride?: string, coordsOverride?: [number, number]) => {
+    const dest = (destOverride ?? destino).trim();
+    if (!origen.trim() || !dest) return;
     // Coordenadas reales del destino: las de la sugerencia elegida o, si el
     // usuario tecleó libremente, geocodificamos al vuelo para enrutar de verdad.
-    const coords = destCoords ?? (await geocodeUno(destino));
+    const coords = coordsOverride ?? destCoords ?? (await geocodeUno(dest));
     setTrip({
-      origen, destino, criterio: "equilibrado", seleccionada: undefined,
+      origen, destino: dest, criterio: "equilibrado", seleccionada: undefined,
       destinoLng: coords?.[0], destinoLat: coords?.[1],
     });
     navigate({ to: "/resultados" });
@@ -107,27 +108,29 @@ function BuscarPage() {
     <PhoneFrame>
       <div className="absolute inset-0 flex flex-col bg-bg">
         <div className="px-4 pt-3 pb-4 flex items-center gap-3 border-b border-border">
-          <button onClick={() => navigate({ to: "/" })} className="w-10 h-10 -ml-2 grid place-items-center">
+          <button onClick={() => navigate({ to: "/" })} className="w-10 h-10 -ml-2 grid place-items-center shrink-0">
             <ArrowLeft size={22} />
           </button>
+          {/* Mismos campos que en resultados: icono numerado DENTRO del campo,
+              misma altura, padding, radio y tipografía (Route builder del DS). */}
           <div className="flex-1 flex flex-col gap-2">
-            <div className="flex items-center gap-3">
-              <img src="/icons/ic_set_address_1.svg" alt="" className="w-8 h-8 shrink-0" />
+            <div className="flex items-center gap-2.5 bg-field rounded-[8px] h-14 pl-2 pr-4 border-2 border-transparent focus-within:border-[#5B34AC]">
+              <img src="/icons/ic_set_address_1.svg" alt="" className="w-6 h-6 shrink-0" />
               <input
                 value={origen}
                 onChange={(e) => setOrigen(e.target.value)}
                 placeholder="¿Desde dónde sales?"
-                className="flex-1 bg-field rounded-[8px] h-14 px-3 text-[16px] outline-none focus:ring-2 focus:ring-brand"
+                className="flex-1 min-w-0 bg-transparent text-[16px] text-text placeholder:text-text-secondary outline-none"
               />
             </div>
-            <div className="flex items-center gap-3">
-              <img src="/icons/ic_set_address_2.svg" alt="" className="w-8 h-8 shrink-0" />
+            <div className="flex items-center gap-2.5 bg-field rounded-[8px] h-14 pl-2 pr-4 border-2 border-transparent focus-within:border-[#5B34AC]">
+              <img src="/icons/ic_set_address_2.svg" alt="" className="w-6 h-6 shrink-0" />
               <input
                 autoFocus
                 value={destino}
                 onChange={(e) => setDestino(e.target.value)}
                 placeholder="¿A dónde vas?"
-                className="flex-1 bg-field rounded-[8px] h-14 px-3 text-[16px] outline-none focus:ring-2 focus:ring-brand"
+                className="flex-1 min-w-0 bg-transparent text-[16px] text-text placeholder:text-text-secondary outline-none"
                 onKeyDown={(e) => e.key === "Enter" && submit()}
               />
             </div>
@@ -138,11 +141,12 @@ function BuscarPage() {
           {sugerencias.map((p, i) => (
             <li key={i}>
               <button
-                onClick={() => {
-                  setEligiendo(true);
-                  setDestino(p.sub || p.titulo);
-                  setDestCoords(p.lng != null && p.lat != null ? [p.lng, p.lat] : undefined);
-                }}
+                onClick={() =>
+                  submit(
+                    p.sub || p.titulo,
+                    p.lng != null && p.lat != null ? [p.lng, p.lat] : undefined
+                  )
+                }
                 className="w-full p-3 rounded-[8px] flex items-center gap-4 text-left hover:bg-field"
               >
                 <span className="w-9 h-9 rounded-[8px] grid place-items-center" style={{
@@ -164,7 +168,7 @@ function BuscarPage() {
         <div className="p-4 bg-bg border-t border-border">
           <button
             disabled={!origen.trim() || !destino.trim()}
-            onClick={submit}
+            onClick={() => submit()}
             className="w-full h-14 rounded-[8px] bg-brand text-white font-bold text-[16px] disabled:opacity-40"
           >
             Ver opciones
