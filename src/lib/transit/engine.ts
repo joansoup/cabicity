@@ -1,5 +1,17 @@
 // Motor determinista del comparador (Cabify Transit)
 // Resumen aplicado de transit-model.md
+import { rutaMetro } from "./metroRouter";
+
+// Origen fijo de la demo: Calle de Pradillo, 42 (Chamartín).
+const PRADILLO: [number, number] = [-3.6736, 40.4445];
+
+function haversineKm(a: [number, number], b: [number, number]): number {
+  const R = 6371, toR = Math.PI / 180;
+  const dLat = (b[1] - a[1]) * toR, dLng = (b[0] - a[0]) * toR;
+  const la1 = a[1] * toR, la2 = b[1] * toR;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
 
 export type ModoTipo =
   | "cabify"
@@ -24,6 +36,7 @@ export interface Tramo {
   pasos: Paso[];
   color: string;
   icono: string; // /icons/... o "lucide:Bus"
+  coords?: [number, number][]; // trazado real (estaciones) para el mapa, si lo hay
 }
 
 export interface Opcion {
@@ -347,16 +360,75 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
   };
 }
 
+// Opción de Metro REAL: enruta sobre la red oficial (GTFS CRTM) usando las
+// coordenadas reales de destino. Líneas, estaciones y tiempos reales.
+function opcionMetroReal(destCoords: [number, number], distKm: number): Opcion | null {
+  const r = rutaMetro(PRADILLO, destCoords);
+  if (!r) return null;
+  const tramos: Tramo[] = [];
+
+  if (r.caminarOrigenM > 80) {
+    const dur = Math.max(1, Math.round((r.caminarOrigenM / 1000 / 5) * 60));
+    tramos.push({
+      tipo: "andando", titulo: `Camina ${r.caminarOrigenM} m hasta ${r.origen.n}`,
+      duracionMin: dur, distanciaKm: r.caminarOrigenM / 1000,
+      color: MODOS.andando.color, icono: MODOS.andando.icono,
+      coords: [PRADILLO, [r.origen.lng, r.origen.lat]],
+      pasos: [{ instruccion: `Camina ${r.caminarOrigenM} m hasta la estación de ${r.origen.n}`, duracionMin: dur }],
+    });
+  }
+
+  r.tramos.forEach((lt) => {
+    const dur = Math.max(2, Math.round(lt.secs / 60));
+    tramos.push({
+      tipo: "metro", titulo: `Línea ${lt.linea} · ${lt.desde} → ${lt.hasta}`,
+      subtitulo: `${lt.paradas} ${lt.paradas === 1 ? "parada" : "paradas"}`,
+      duracionMin: dur, distanciaKm: 0, color: lt.color || MODOS.metro.color, icono: MODOS.metro.icono,
+      coords: lt.coords,
+      pasos: [
+        { instruccion: `Coge la Línea ${lt.linea} en ${lt.desde}`, duracionMin: 1 },
+        { instruccion: `Continúa ${lt.paradas} ${lt.paradas === 1 ? "parada" : "paradas"}`, duracionMin: Math.max(1, dur - 2) },
+        { instruccion: `Baja en ${lt.hasta}`, duracionMin: 1 },
+      ],
+    });
+  });
+
+  if (r.caminarDestinoM > 80) {
+    const dur = Math.max(1, Math.round((r.caminarDestinoM / 1000 / 5) * 60));
+    tramos.push({
+      tipo: "andando", titulo: `Camina ${r.caminarDestinoM} m hasta tu destino`,
+      duracionMin: dur, distanciaKm: r.caminarDestinoM / 1000,
+      color: MODOS.andando.color, icono: MODOS.andando.icono,
+      coords: [[r.destino.lng, r.destino.lat], destCoords],
+      pasos: [{ instruccion: `Camina ${r.caminarDestinoM} m hasta tu destino`, duracionMin: dur }],
+    });
+  }
+
+  const eta = tramos.reduce((s, t) => s + t.duracionMin, 0) + r.transbordos * 4;
+  const co2 = round2(0.04 * distKm);
+  const puntos = capPuntos(PUNTOS_POR_KM.metro * distKm, distKm > 60);
+  return {
+    id: "simple-metro", tipo: "simple", nombre: "Metro", modos: ["metro"], tramos,
+    etaMin: eta, precioEur: 2.0, co2Kg: co2, puntos, esSostenible: true,
+  };
+}
+
 // --- API pública -----------------------------------------------------------
 export type Criterio = "equilibrado" | "rapido" | "barato" | "ecologico";
 
-export function generarOpciones(destino: string): { distKm: number; opciones: Opcion[] } {
-  const distKm = distanciaPara(destino);
+export function generarOpciones(destino: string, destCoords?: [number, number]): { distKm: number; opciones: Opcion[] } {
+  const distKm = destCoords ? Math.round(haversineKm(PRADILLO, destCoords) * 10) / 10 : distanciaPara(destino);
   const seed = hashStr(destino || "x");
   const opciones: Opcion[] = [];
 
   (["cabify", "metro", "cercanias", "ave", "andando", "bicimad", "bus"] as ModoTipo[]).forEach((m) => {
-    if (MODOS[m].avail(distKm)) opciones.push(opcionSimple(m, distKm, seed));
+    if (!MODOS[m].avail(distKm)) return;
+    if (m === "metro" && destCoords) {
+      const real = opcionMetroReal(destCoords, distKm);
+      opciones.push(real ?? opcionSimple(m, distKm, seed));
+    } else {
+      opciones.push(opcionSimple(m, distKm, seed));
+    }
   });
 
   // combos

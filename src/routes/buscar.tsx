@@ -18,7 +18,7 @@ const RECIENTES = [
   { tipo: "reciente", titulo: "AVE Madrid - Sevilla", sub: "Estación Madrid Atocha" },
 ];
 
-type Sug = { tipo: string; titulo: string; sub: string };
+type Sug = { tipo: string; titulo: string; sub: string; lng?: number; lat?: number };
 
 function BuscarPage() {
   const navigate = useNavigate();
@@ -26,6 +26,7 @@ function BuscarPage() {
   const [destino, setDestino] = useState("");
   const [sugerencias, setSugerencias] = useState<Sug[]>(RECIENTES);
   const [eligiendo, setEligiendo] = useState(false);
+  const [destCoords, setDestCoords] = useState<[number, number] | undefined>(undefined);
 
   // Autocompletado real de destino con la API de geocoding de Mapbox (como en
   // cualquier app de viajes): sugiere lugares reales según escribes.
@@ -44,10 +45,12 @@ function BuscarPage() {
         const res = await fetch(url, { signal: ctrl.signal });
         const data = await res.json();
         const feats: Sug[] = (data.features || []).map(
-          (f: { text?: string; place_name?: string }) => ({
+          (f: { text?: string; place_name?: string; center?: [number, number] }) => ({
             tipo: "reciente",
             titulo: f.text || f.place_name || "",
             sub: f.place_name || "",
+            lng: f.center?.[0],
+            lat: f.center?.[1],
           })
         );
         if (feats.length) setSugerencias(feats);
@@ -69,7 +72,10 @@ function BuscarPage() {
 
   const submit = () => {
     if (!origen.trim() || !destino.trim()) return;
-    setTrip({ origen, destino, criterio: "equilibrado", seleccionada: undefined });
+    setTrip({
+      origen, destino, criterio: "equilibrado", seleccionada: undefined,
+      destinoLng: destCoords?.[0], destinoLat: destCoords?.[1],
+    });
     navigate({ to: "/resultados" });
   };
 
@@ -108,7 +114,11 @@ function BuscarPage() {
           {sugerencias.map((p, i) => (
             <li key={i}>
               <button
-                onClick={() => { setEligiendo(true); setDestino(p.sub || p.titulo); }}
+                onClick={() => {
+                  setEligiendo(true);
+                  setDestino(p.sub || p.titulo);
+                  setDestCoords(p.lng != null && p.lat != null ? [p.lng, p.lat] : undefined);
+                }}
                 className="w-full p-3 rounded-[8px] flex items-center gap-4 text-left hover:bg-field"
               >
                 <span className="w-9 h-9 rounded-[8px] grid place-items-center" style={{

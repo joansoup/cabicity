@@ -73,26 +73,30 @@ export function buildRouteGeo(op: Opcion, destinoTexto: string): RouteGeo {
   };
 
   const segments: SegmentGeo[] = [];
-  const stops: LngLat[] = [SOL];
-  const flat: LngLat[] = [SOL];
   let cursor: LngLat = SOL;
 
   op.tramos.forEach((t, i) => {
-    const km = escala(t.distanciaKm);
-    // pequeño giro entre tramos para representar transbordo
-    if (i > 0) bearing += ((seed >> (i * 3)) % 60) - 30;
-    const pts = advance(cursor, km, bearing, seed + i, t.tipo === "andando" ? 0.2 : 0.5);
-    const segCoords = pts;
-    segments.push({
-      tramoIdx: i,
-      tipo: t.tipo,
-      color: t.color,
-      coords: segCoords,
-    });
-    // añadir al flat sin duplicar el primer punto
-    for (let k = 1; k < segCoords.length; k++) flat.push(segCoords[k]);
+    let segCoords: LngLat[];
+    if (t.coords && t.coords.length >= 2) {
+      // Trazado REAL (coordenadas de estaciones del GTFS).
+      segCoords = t.coords as LngLat[];
+    } else {
+      const km = escala(t.distanciaKm);
+      // pequeño giro entre tramos para representar transbordo
+      if (i > 0) bearing += ((seed >> (i * 3)) % 60) - 30;
+      segCoords = advance(cursor, km, bearing, seed + i, t.tipo === "andando" ? 0.2 : 0.5);
+    }
+    segments.push({ tramoIdx: i, tipo: t.tipo, color: t.color, coords: segCoords });
     cursor = segCoords[segCoords.length - 1];
-    stops.push(cursor);
+  });
+
+  // polyline plana + paradas a partir de segmentos (continuos)
+  const flat: LngLat[] = [];
+  const stops: LngLat[] = [];
+  segments.forEach((s, i) => {
+    if (i === 0) { stops.push(s.coords[0]); flat.push(...s.coords); }
+    else { flat.push(...s.coords.slice(1)); }
+    stops.push(s.coords[s.coords.length - 1]);
   });
 
   // Posiciones por paso: distribuir por duración acumulada sobre flat
