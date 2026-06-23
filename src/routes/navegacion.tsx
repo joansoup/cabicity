@@ -6,7 +6,7 @@ import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
 import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
 import { ModoIcon } from "@/components/transit/ModoIcon";
-import { MetroLineBadge, extractMetroLinea } from "@/components/transit/MetroLineBadge";
+import { MetroLineBadge, extractMetroLinea, CercaniasLineBadge, extractCercaniasLinea } from "@/components/transit/MetroLineBadge";
 import type { Paso, Tramo } from "@/lib/transit/engine";
 import { buildRouteGeo, type LngLat } from "@/lib/transit/routeGeo";
 import { MapaMapbox, type MapaRutaSegmento, type MapaMarcador } from "@/components/transit/MapaMapbox";
