@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, MapPin, Circle, Square, Clock, Home } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Home } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, setTrip } from "@/lib/transit/store";
 import { getMapboxToken } from "@/lib/transit/routeGeo";
