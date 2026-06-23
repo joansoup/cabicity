@@ -308,7 +308,7 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
   return {
     id: `combo-${idSuffix}`, tipo: "combo", nombre, modos, tramos,
     etaMin: eta, precioEur: precio, co2Kg: co2, cashbackEur: cashback,
-    desglose, esSostenible: true,
+    desglose, esSostenible,
   };
 }
 
