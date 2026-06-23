@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Volume2, VolumeX, ChevronRight } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
@@ -8,6 +9,7 @@ import { ModoIcon } from "@/components/transit/ModoIcon";
 import type { Paso, Tramo } from "@/lib/transit/engine";
 import { buildRouteGeo } from "@/lib/transit/routeGeo";
 import { MapaMapbox, type MapaRutaSegmento, type MapaMarcador } from "@/components/transit/MapaMapbox";
+import { speakRosalia } from "@/lib/tts.functions";
 
 export const Route = createFileRoute("/navegacion")({
   component: Nav,
@@ -49,15 +51,25 @@ function Nav() {
 
   const actual = pasos[idx];
 
-  // Asistente de voz (Web Speech API del navegador, es-ES). Pensado para escuchar
-  // las indicaciones con auriculares sin sacar el móvil del bolsillo.
-  const decir = (texto: string) => {
-    if (!voz || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  // Asistente de voz con ElevenLabs (voz personalizada de Rosalía). Reproducimos
+  // audio MP3 servido por una server function para no exponer la API key.
+  const ttsFn = useServerFn(speakRosalia);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const reqIdRef = useRef(0);
+
+  const decir = async (texto: string) => {
+    if (!voz || typeof window === "undefined") return;
+    const myId = ++reqIdRef.current;
     try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(texto);
-      u.lang = "es-ES";
-      window.speechSynthesis.speak(u);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      const res = await ttsFn({ data: { text: texto } });
+      if (myId !== reqIdRef.current) return; // llegó tarde, ignora
+      const audio = new Audio(`data:${res.mime};base64,${res.audioBase64}`);
+      audioRef.current = audio;
+      audio.play().catch(() => { /* autoplay bloqueado */ });
     } catch { /* ignore */ }
   };
 
@@ -179,7 +191,11 @@ function Nav() {
               const nv = !voz;
               setVoz(nv);
               localStorage.setItem("ct-voz", nv ? "1" : "0");
-              if (!nv && typeof window !== "undefined") window.speechSynthesis?.cancel();
+              if (!nv) {
+                reqIdRef.current++;
+                audioRef.current?.pause();
+                audioRef.current = null;
+              }
             }}
             className="absolute top-3 right-3 w-10 h-10 rounded-full bg-surface grid place-items-center z-10"
             style={{ boxShadow: "var(--shadow-rised)" }}
