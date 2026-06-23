@@ -137,10 +137,10 @@ function HomePage() {
 
         {/* medalla central elevada (sobre el bump) */}
         <div
-          className="absolute left-1/2 -translate-x-1/2 -top-3 w-12 h-12 rounded-full grid place-items-center border-2 border-white"
-          style={{ background: "linear-gradient(135deg, #7145d6, #feb54e)", boxShadow: "var(--shadow-rised)" }}
+          className="absolute left-1/2 -translate-x-1/2 -top-3 w-12 h-12 grid place-items-center"
+          style={{ filter: "drop-shadow(var(--shadow-rised))" }}
         >
-          <img src="/icons/ic_medal_three_sides_circular_multi.svg" alt="" className="w-7 h-7" style={{ filter: "brightness(0) invert(1)" }} />
+          <img src="/icons/ic_medal_multi_cabify_club.svg" alt="" className="w-12 h-12" />
         </div>
 
         {/* pestañas */}
