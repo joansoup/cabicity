@@ -34,7 +34,7 @@ function CategoriaCabify() {
 
   const continuar = () => {
     setTrip({ categoriaCabify: seleccion });
-    navigate({ to: "/navegacion" });
+    navigate({ to: "/recogida-cabify" });
   };
 
   if (!trip?.seleccionada || !elegida) return <PhoneFrame><div /></PhoneFrame>;

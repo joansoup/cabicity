@@ -20,6 +20,13 @@ export interface MapaRutaSegmento {
   dashed?: boolean;
 }
 
+export interface MapaVehiculo {
+  pos: LngLat;
+  svgUrl: string;
+  rotacionDeg?: number;
+  tamano?: number; // ancho en px
+}
+
 interface Props {
   centro: LngLat;
   zoom?: number;
@@ -31,6 +38,8 @@ interface Props {
   marcadorActivo?: LngLat;
   /** Marcador de "tu ubicación actual" (punto azul con halo). */
   ubicacionActual?: LngLat;
+  /** Vehículo SVG que se anima al cambiar pos (p.ej. Cabify acercándose). */
+  vehiculo?: MapaVehiculo;
   /** Si hay ruta, ajusta el encuadre a todos sus puntos al montar. */
   fitRuta?: boolean;
   className?: string;
@@ -90,6 +99,7 @@ export function MapaMapbox({
   marcadores,
   marcadorActivo,
   ubicacionActual,
+  vehiculo,
   fitRuta = true,
   className,
   interactive = false,
@@ -99,6 +109,8 @@ export function MapaMapbox({
   // Referencias mutables sin tipar mapbox a nivel de módulo.
   const mapRef = useRef<unknown>(null);
   const movingMarkerRef = useRef<unknown>(null);
+  const vehiculoMarkerRef = useRef<unknown>(null);
+  const vehiculoImgRef = useRef<HTMLImageElement | null>(null);
 
   // Init mapa (cliente only, import dinámico)
   useEffect(() => {
@@ -231,6 +243,22 @@ export function MapaMapbox({
             .setLngLat(marcadorActivo)
             .addTo(map);
         }
+
+        // Vehículo (SVG cenital) — se anima en efecto dedicado al cambiar pos
+        if (vehiculo) {
+          const wrap = document.createElement("div");
+          const w = vehiculo.tamano ?? 44;
+          wrap.style.cssText = `width:${w}px;height:${w}px;display:grid;place-items:center;`;
+          const img = document.createElement("img");
+          img.src = vehiculo.svgUrl;
+          img.alt = "";
+          img.style.cssText = `width:100%;height:auto;transform:rotate(${vehiculo.rotacionDeg ?? 0}deg);transition:transform 600ms ease;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.25));`;
+          wrap.appendChild(img);
+          vehiculoImgRef.current = img;
+          vehiculoMarkerRef.current = new mapboxgl.Marker({ element: wrap, anchor: "center" })
+            .setLngLat(vehiculo.pos)
+            .addTo(map);
+        }
       });
     })();
 
@@ -245,6 +273,8 @@ export function MapaMapbox({
       }
       mapRef.current = null;
       movingMarkerRef.current = null;
+      vehiculoMarkerRef.current = null;
+      vehiculoImgRef.current = null;
     };
     // Re-montamos cuando cambia el token; el resto se actualiza en efectos
     // dedicados de abajo para no recrear el mapa en cada render.
@@ -263,6 +293,16 @@ export function MapaMapbox({
       zoom: Math.max(map.getZoom(), 13.5),
     });
   }, [marcadorActivo]);
+
+  // Animar vehículo cuando cambia su posición o rotación
+  useEffect(() => {
+    const mk = vehiculoMarkerRef.current as { setLngLat: (p: LngLat) => void } | null;
+    if (!mk || !vehiculo) return;
+    mk.setLngLat(vehiculo.pos);
+    if (vehiculoImgRef.current) {
+      vehiculoImgRef.current.style.transform = `rotate(${vehiculo.rotacionDeg ?? 0}deg)`;
+    }
+  }, [vehiculo?.pos, vehiculo?.rotacionDeg]);
 
   if (!token) {
     return <MapaFallback className={className} />;
