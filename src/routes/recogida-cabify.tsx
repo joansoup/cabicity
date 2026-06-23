@@ -5,7 +5,7 @@ import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, type TripState } from "@/lib/transit/store";
 import { categoriasParaOpcion } from "@/lib/transit/engine";
 import { buildRouteGeo, type LngLat } from "@/lib/transit/routeGeo";
-import { MapaMapbox, type MapaMarcador } from "@/components/transit/MapaMapbox";
+import { MapaMapbox, type MapaMarcador, type MapaRutaSegmento } from "@/components/transit/MapaMapbox";
 import { fmtEur } from "@/lib/transit/format";
 
 type Categoria = ReturnType<typeof categoriasParaOpcion>[number];
