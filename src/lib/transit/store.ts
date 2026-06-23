@@ -1,11 +1,12 @@
 // Pequeño store en sessionStorage para pasar datos entre rutas sin librería extra.
-import type { Opcion } from "./engine";
+import type { Opcion, CabifyCategoriaId } from "./engine";
 
 export interface TripState {
   origen: string;
   destino: string;
   criterio: "equilibrado" | "rapido" | "barato" | "ecologico";
   seleccionada?: Opcion;
+  categoriaCabify?: CabifyCategoriaId;
 }
 
 const KEY = "cabify-transit-trip";

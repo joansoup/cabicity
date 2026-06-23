@@ -65,9 +65,36 @@ export function distanciaPara(destino: string): number {
   return Math.round(r * 10) / 10;
 }
 
+// --- Categorías Cabify ----------------------------------------------------
+// Multiplicador sobre el precio base. La más barata (Eco) se usa al mostrar
+// el precio de Cabify en /resultados y /viaje; en /categoria-cabify el usuario
+// elige la concreta antes de iniciar la navegación.
+export type CabifyCategoriaId = "eco" | "estandar" | "mujer" | "xl";
+export interface CabifyCategoria {
+  id: CabifyCategoriaId;
+  nombre: string;
+  descripcion: string;
+  multiplicador: number;
+  etaExtraMin: number;
+}
+export const CABIFY_CATEGORIAS: CabifyCategoria[] = [
+  { id: "eco",      nombre: "Cabify Eco",      descripcion: "100% eléctrico, la opción más económica", multiplicador: 0.88, etaExtraMin: 1 },
+  { id: "estandar", nombre: "Cabify",          descripcion: "Coche estándar para hasta 4 personas",    multiplicador: 1.00, etaExtraMin: 0 },
+  { id: "mujer",    nombre: "Cabify Mujer",    descripcion: "Conductoras mujeres, para pasajeras",     multiplicador: 1.00, etaExtraMin: 3 },
+  { id: "xl",       nombre: "Cabify XL",       descripcion: "Hasta 6 plazas o equipaje extra",         multiplicador: 1.45, etaExtraMin: 2 },
+];
+const CHEAPEST_CABIFY_MULTI = Math.min(...CABIFY_CATEGORIAS.map((c) => c.multiplicador));
+
+export function categoriasCabifyConPrecio(precioBaseCabify: number) {
+  return CABIFY_CATEGORIAS.map((c) => ({
+    ...c,
+    precioEur: Math.round(precioBaseCabify * (c.multiplicador / CHEAPEST_CABIFY_MULTI) * 100) / 100,
+  }));
+}
+
 // --- parámetros ----------------------------------------------------------
 const MODOS = {
-  cabify:    { speed: 25,  price: (d: number) => 2.5 + 1.25 * d, co2: 0.15,  avail: () => true,        color: "#7145d6", icono: "/icons/ic_cabify.svg" },
+  cabify:    { speed: 25,  price: (d: number) => (2.5 + 1.25 * d) * CHEAPEST_CABIFY_MULTI, co2: 0.15,  avail: () => true,        color: "#7145d6", icono: "/icons/ic_cabify.svg" },
   metro:     { speed: 30,  price: () => 2.0,                     co2: 0.04,  avail: (d: number) => d < 20, color: "#2760c2", icono: "lucide:TramFront" },
   cercanias: { speed: 45,  price: (d: number) => 2.6 + 0.05 * d, co2: 0.035, avail: (d: number) => d >= 5 && d < 60, color: "#017251", icono: "lucide:TrainFrontTunnel" },
   ave:       { speed: 200, price: (d: number) => 25 + 0.18 * d,  co2: 0.03,  avail: (d: number) => d >= 60, color: "#5b34ac", icono: "lucide:TrainFront" },
@@ -368,4 +395,31 @@ export function ordenarOpciones(ops: Opcion[], criterio: Criterio): Opcion[] {
     return sa - sb || a.etaMin - b.etaMin;
   });
   return sorted;
+}
+
+// --- Helpers de categorías Cabify por opción --------------------------------
+// Devuelve la suma de "precio Cabify" de la opción aplicando un multiplicador
+// determinado. Si no hay tramos Cabify, devuelve 0.
+export function precioCabifyParaOpcion(op: Opcion, multiplicador: number): number {
+  return op.tramos
+    .filter((t) => t.tipo === "cabify")
+    .reduce((s, t) => s + (2.5 + 1.25 * t.distanciaKm) * multiplicador, 0);
+}
+
+// ¿La opción incluye algún tramo Cabify?
+export function opcionTieneCabify(op: Opcion): boolean {
+  return op.modos.includes("cabify");
+}
+
+// Devuelve la lista de categorías con su precio total para la opción dada.
+// El total se obtiene reemplazando el coste Cabify (calculado al multiplicador
+// más barato) por el coste con el multiplicador de cada categoría.
+export function categoriasParaOpcion(op: Opcion) {
+  const precioBaseCabify = precioCabifyParaOpcion(op, CHEAPEST_CABIFY_MULTI);
+  return CABIFY_CATEGORIAS.map((c) => {
+    const precioCabifyCategoria = precioCabifyParaOpcion(op, c.multiplicador);
+    const totalEur = Math.round((op.precioEur - precioBaseCabify + precioCabifyCategoria) * 100) / 100;
+    const precioCabifyEur = Math.round(precioCabifyCategoria * 100) / 100;
+    return { ...c, precioCabifyEur, totalEur };
+  });
 }
