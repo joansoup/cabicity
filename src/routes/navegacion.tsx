@@ -191,7 +191,11 @@ function Nav() {
               const nv = !voz;
               setVoz(nv);
               localStorage.setItem("ct-voz", nv ? "1" : "0");
-              if (!nv && typeof window !== "undefined") window.speechSynthesis?.cancel();
+              if (!nv) {
+                reqIdRef.current++;
+                audioRef.current?.pause();
+                audioRef.current = null;
+              }
             }}
             className="absolute top-3 right-3 w-10 h-10 rounded-full bg-surface grid place-items-center z-10"
             style={{ boxShadow: "var(--shadow-rised)" }}
