@@ -207,16 +207,6 @@ function Nav() {
             <div className="text-[13px] font-bold">{fmtMin(restante)} restantes</div>
           </div>
 
-          {op.puntos > 0 && (
-            <div className="mx-4 mt-3 mb-1 rounded-[16px] bg-cashback-bg text-cashback-text px-3.5 py-2.5 flex items-center gap-2.5">
-              <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-5 h-5 flex-shrink-0" />
-              <div className="text-[13px] leading-tight">
-                Ganarás <span className="font-bold">+{op.puntos} puntos</span> Cabify Club al completar este viaje
-              </div>
-            </div>
-          )}
-
-
           <ul className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
             {pasos.slice(idx + 1, idx + 5).map((p, i) => (
               <li key={i} className="flex items-center gap-3 p-2 rounded-[8px]">
@@ -229,7 +219,15 @@ function Nav() {
             ))}
           </ul>
 
-          <div className="p-4 border-t border-border">
+          <div className="p-4 border-t border-border space-y-3">
+            {op.puntos > 0 && (
+              <div className="rounded-[16px] bg-cashback-bg text-cashback-text px-3.5 py-2.5 flex items-center gap-2.5">
+                <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-5 h-5 flex-shrink-0" />
+                <div className="text-[13px] leading-tight">
+                  Ganarás <span className="font-bold">+{op.puntos} puntos</span> Cabify Club al completar este viaje
+                </div>
+              </div>
+            )}
             <button
               onClick={next}
               className="w-full h-12 rounded-[16px] bg-brand text-white font-bold text-[16px] flex items-center justify-center gap-2"
@@ -237,6 +235,7 @@ function Nav() {
               Siguiente paso <ChevronRight size={18} />
             </button>
           </div>
+
         </div>
       </div>
     </PhoneFrame>
