@@ -273,6 +273,8 @@ export function MapaMapbox({
       }
       mapRef.current = null;
       movingMarkerRef.current = null;
+      vehiculoMarkerRef.current = null;
+      vehiculoImgRef.current = null;
     };
     // Re-montamos cuando cambia el token; el resto se actualiza en efectos
     // dedicados de abajo para no recrear el mapa en cada render.
@@ -291,6 +293,16 @@ export function MapaMapbox({
       zoom: Math.max(map.getZoom(), 13.5),
     });
   }, [marcadorActivo]);
+
+  // Animar vehículo cuando cambia su posición o rotación
+  useEffect(() => {
+    const mk = vehiculoMarkerRef.current as { setLngLat: (p: LngLat) => void } | null;
+    if (!mk || !vehiculo) return;
+    mk.setLngLat(vehiculo.pos);
+    if (vehiculoImgRef.current) {
+      vehiculoImgRef.current.style.transform = `rotate(${vehiculo.rotacionDeg ?? 0}deg)`;
+    }
+  }, [vehiculo?.pos, vehiculo?.rotacionDeg]);
 
   if (!token) {
     return <MapaFallback className={className} />;
