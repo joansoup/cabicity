@@ -378,6 +378,29 @@ export function generarOpciones(destino: string): { distKm: number; opciones: Op
     }
   }
 
+  // Cabify siempre debe ser la opción más rápida del listado. Si por la
+  // distancia el metro u otro modo sale antes, ajustamos el etaMin del Cabify
+  // simple (y la duración del tramo de viaje) para garantizarlo visualmente.
+  const cabifySimple = opciones.find((o) => o.id === "simple-cabify");
+  if (cabifySimple) {
+    const minOtros = Math.min(
+      ...opciones.filter((o) => o !== cabifySimple).map((o) => o.etaMin),
+      Infinity
+    );
+    if (Number.isFinite(minOtros) && cabifySimple.etaMin >= minOtros) {
+      const objetivo = Math.max(2, minOtros - 1);
+      const delta = cabifySimple.etaMin - objetivo;
+      cabifySimple.etaMin = objetivo;
+      // Recortamos la duración del paso de trayecto (último) del único tramo.
+      const tramo = cabifySimple.tramos[0];
+      if (tramo) {
+        tramo.duracionMin = Math.max(1, tramo.duracionMin - delta);
+        const ultimoPaso = tramo.pasos[tramo.pasos.length - 1];
+        if (ultimoPaso) ultimoPaso.duracionMin = Math.max(1, ultimoPaso.duracionMin - delta);
+      }
+    }
+  }
+
   return { distKm, opciones };
 }
 
