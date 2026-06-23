@@ -251,10 +251,8 @@ function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
   const co2 = round2(m.co2 * distKm);
   const interurbano = distKm > 60;
   const esSostenible = SOSTENIBLE[tipo];
-  // Solo los modos sostenibles generan puntos Cabify Club.
-  const puntos = esSostenible
-    ? capPuntos(PUNTOS_POR_KM[tipo] * distKm, interurbano)
-    : 0;
+  // Todos los modos generan puntos Cabify Club (incluido Cabify).
+  const puntos = capPuntos(PUNTOS_POR_KM[tipo] * distKm, interurbano);
   let tramos: Tramo[];
   if (tipo === "cabify") {
     tramos = [tramoCabify(distKm, "Cabify directo a destino", "Trayecto en Cabify hasta tu destino")];
