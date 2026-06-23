@@ -43,8 +43,8 @@ function Resultados() {
   }, [trip?.destino]);
 
   const ordenadas = useMemo(() => ordenarOpciones(opciones, criterio), [opciones, criterio]);
-  const metroRef = useMemo(
-    () => ordenadas.find((o) => o.id === "simple-metro") ?? null,
+  const fastestId = useMemo(
+    () => [...ordenadas].sort((a, b) => a.etaMin - b.etaMin)[0]?.id ?? null,
     [ordenadas]
   );
 
