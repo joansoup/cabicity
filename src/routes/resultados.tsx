@@ -137,7 +137,11 @@ function Resultados() {
 
               {(() => {
                 const v = fraseVenta(op, masBarata);
-                return v ? <div className="text-[12px] font-medium text-eco-text">{v}</div> : null;
+                return v ? (
+                  <div className="self-start bg-eco-bg text-eco-text rounded-full px-3 py-1 text-[12px] font-bold">
+                    {v}
+                  </div>
+                ) : null;
               })()}
 
               {op.desglose && (
