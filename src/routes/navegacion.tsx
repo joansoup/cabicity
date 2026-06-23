@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Volume2, VolumeX, ChevronRight } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
@@ -8,6 +9,7 @@ import { ModoIcon } from "@/components/transit/ModoIcon";
 import type { Paso, Tramo } from "@/lib/transit/engine";
 import { buildRouteGeo } from "@/lib/transit/routeGeo";
 import { MapaMapbox, type MapaRutaSegmento, type MapaMarcador } from "@/components/transit/MapaMapbox";
+import { speakRosalia } from "@/lib/tts.functions";
 
 export const Route = createFileRoute("/navegacion")({
   component: Nav,
