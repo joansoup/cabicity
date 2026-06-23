@@ -231,10 +231,7 @@ function Nav() {
                   <ModoIcon tipo={p.tramo.tipo} size={16} />
                 </div>
                 <div className="flex-1 text-[14px] text-text-secondary truncate">{p.paso.instruccion}</div>
-                <div className="flex items-center gap-1 text-text">
-                  <Radar size={16} className="text-eco-text animate-pulse" aria-hidden />
-                  <span className="text-[15px] font-bold">{fmtMin(p.paso.duracionMin)}</span>
-                </div>
+                <span className="text-[15px] font-bold text-text">{fmtMin(p.paso.duracionMin)}</span>
               </li>
             ))}
           </ul>
