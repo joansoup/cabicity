@@ -60,10 +60,24 @@ function HomePage() {
     navigate({ to: "/buscar" });
   };
 
+  const mbToken = getMapboxToken();
+  const staticMapUrl = mbToken
+    ? `https://api.mapbox.com/styles/v1/mapbox/light-v11/static/-3.7038,40.4168,12.5,0/700x1280?access_token=${mbToken}`
+    : null;
+
   return (
     <PhoneFrame>
       <div className="absolute inset-0">
-        <MadridMap />
+        {staticMapUrl ? (
+          <img
+            src={staticMapUrl}
+            alt="Mapa de Madrid"
+            className="absolute inset-0 w-full h-full object-cover"
+            draggable={false}
+          />
+        ) : (
+          <MadridMap />
+        )}
       </div>
 
       {/* avatar */}
