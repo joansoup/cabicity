@@ -4,8 +4,7 @@ import { ArrowLeft, Phone, MessageSquare, Shield } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, type TripState } from "@/lib/transit/store";
 import { categoriasParaOpcion } from "@/lib/transit/engine";
-import { type LngLat } from "@/lib/transit/routeGeo";
-import { useSnappedRoute } from "@/lib/transit/useSnappedRoute";
+import { buildRouteGeo, type LngLat } from "@/lib/transit/routeGeo";
 import { MapaMapbox, type MapaMarcador, type MapaRutaSegmento } from "@/components/transit/MapaMapbox";
 import { fmtEur } from "@/lib/transit/format";
 
@@ -56,7 +55,7 @@ function RecogidaCabify() {
     return cats.find((c) => c.id === trip?.categoriaCabify) ?? cats[0];
   }, [op, trip?.categoriaCabify]);
 
-  const geo = useSnappedRoute(op, trip?.destino);
+  const geo = useMemo(() => (op ? buildRouteGeo(op, trip?.destino || op.id) : null), [op, trip?.destino]);
 
   // Punto de partida del Cabify: a ~0.9 km al noroeste del origen.
   // (Determinista, así no salta entre renders del preview.)
