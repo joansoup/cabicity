@@ -143,9 +143,6 @@ function Resultados() {
                 return v ? <div className="text-[12px] font-medium text-eco-text">{v}</div> : null;
               })()}
 
-              {op.desglose && (
-                <div className="text-[12px] text-text-secondary">{op.desglose}</div>
-              )}
             </button>
           ))}
           {ordenadas.length === 0 && (
