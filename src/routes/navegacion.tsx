@@ -6,6 +6,7 @@ import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
 import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
 import { ModoIcon } from "@/components/transit/ModoIcon";
+import { MetroLineBadge, extractMetroLinea } from "@/components/transit/MetroLineBadge";
 import type { Paso, Tramo } from "@/lib/transit/engine";
 import { buildRouteGeo, type LngLat } from "@/lib/transit/routeGeo";
 import { MapaMapbox, type MapaRutaSegmento, type MapaMarcador } from "@/components/transit/MapaMapbox";
@@ -226,9 +227,13 @@ function Nav() {
         {/* instrucción actual + lista */}
         <div className="flex-1 flex flex-col bg-surface rounded-t-[24px] -mt-6 relative z-10 overflow-hidden" style={{ boxShadow: "var(--shadow-rised)" }}>
           <div className="p-4 flex gap-3 items-start border-b border-border">
-            <div className="w-12 h-12 rounded-full grid place-items-center flex-shrink-0 bg-field">
-              <ModoIcon tipo={actual.tramo.tipo} size={26} />
-            </div>
+            {actual.tramo.tipo === "metro" && extractMetroLinea(actual.tramo.titulo) ? (
+              <MetroLineBadge linea={extractMetroLinea(actual.tramo.titulo)!} size={48} />
+            ) : (
+              <div className="w-12 h-12 rounded-full grid place-items-center flex-shrink-0 bg-field">
+                <ModoIcon tipo={actual.tramo.tipo} size={26} />
+              </div>
+            )}
             <div className="flex-1">
               <div className="text-[11px] font-bold uppercase tracking-wide text-text-secondary">Paso {idx + 1} de {pasos.length}</div>
               <div className="text-[19px] font-bold leading-tight">{actual.paso.instruccion}</div>
@@ -243,16 +248,24 @@ function Nav() {
           </div>
 
           <ul className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
-            {pasos.slice(idx + 1, idx + 5).map((p, i) => (
-              <li key={i} className="flex items-center gap-3 p-2 rounded-[8px]">
-                <div className="w-8 h-8 rounded-full grid place-items-center bg-field">
-                  <ModoIcon tipo={p.tramo.tipo} size={16} />
-                </div>
-                <div className="flex-1 text-[14px] text-text-secondary truncate">{p.paso.instruccion}</div>
-                <span className="text-[15px] font-bold text-text">{fmtMin(p.paso.duracionMin)}</span>
-              </li>
-            ))}
+            {pasos.slice(idx + 1, idx + 5).map((p, i) => {
+              const metroLinea = p.tramo.tipo === "metro" ? extractMetroLinea(p.tramo.titulo) : null;
+              return (
+                <li key={i} className="flex items-center gap-3 p-2 rounded-[8px]">
+                  {metroLinea ? (
+                    <MetroLineBadge linea={metroLinea} size={32} />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full grid place-items-center bg-field">
+                      <ModoIcon tipo={p.tramo.tipo} size={16} />
+                    </div>
+                  )}
+                  <div className="flex-1 text-[14px] text-text-secondary truncate">{p.paso.instruccion}</div>
+                  <span className="text-[15px] font-bold text-text">{fmtMin(p.paso.duracionMin)}</span>
+                </li>
+              );
+            })}
           </ul>
+
 
           <div className="p-4 border-t border-border space-y-3">
             {op.puntos > 0 && (
