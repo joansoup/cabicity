@@ -63,9 +63,8 @@ function HomePage() {
       </div>
 
       {/* avatar */}
-      <div className="absolute top-3 right-4 w-12 h-12 rounded-full bg-brand text-white grid place-items-center font-bold" style={{ boxShadow: "var(--shadow-rised)" }}>
-        IB
-      </div>
+      <img src={ivanAvatar.url} alt="Iván" className="absolute top-3 right-4 w-12 h-12 rounded-full object-cover" style={{ boxShadow: "var(--shadow-rised)" }} />
+
 
       {/* bottom sheet */}
       <div className="absolute left-0 right-0 bottom-[58px] bg-surface rounded-t-[24px] pt-2 pb-6 flex flex-col gap-3" style={{ boxShadow: "var(--shadow-rised)" }}>
