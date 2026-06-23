@@ -18,13 +18,6 @@ const CHIPS: { id: Criterio; label: string }[] = [
   { id: "ecologico", label: "Ecológico" },
 ];
 
-// Copy de venta para opciones Cabify: compara contra la opción de metro simple
-// para destacar cuánto más cuesta y cuánto tiempo se ahorra.
-function fraseVenta(op: Opcion, metro: Opcion | null): string | null {
-  if (!metro || op.id === metro.id) return null;
-  if (!op.modos.includes("cabify")) return null;
-  return `14 min más rápido que el metro`;
-}
 
 function Resultados() {
   const navigate = useNavigate();
@@ -43,8 +36,8 @@ function Resultados() {
   }, [trip?.destino]);
 
   const ordenadas = useMemo(() => ordenarOpciones(opciones, criterio), [opciones, criterio]);
-  const metroRef = useMemo(
-    () => ordenadas.find((o) => o.id === "simple-metro") ?? null,
+  const fastestId = useMemo(
+    () => [...ordenadas].sort((a, b) => a.etaMin - b.etaMin)[0]?.id ?? null,
     [ordenadas]
   );
 
@@ -129,14 +122,11 @@ function Resultados() {
                 </div>
               )}
 
-              {(() => {
-                const v = fraseVenta(op, metroRef);
-                return v ? (
-                  <div className="self-start bg-eco-bg text-eco-text rounded-full px-3 py-1 text-[12px] font-bold">
-                    {v}
-                  </div>
-                ) : null;
-              })()}
+              {op.id === fastestId && (
+                <div className="self-start bg-eco-bg text-eco-text rounded-full px-3 py-1 text-[12px] font-bold">
+                  Opción más rápida
+                </div>
+              )}
 
               {op.desglose && (
                 <div className="text-[12px] text-text-secondary">{op.desglose}</div>
