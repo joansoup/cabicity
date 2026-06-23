@@ -111,7 +111,7 @@ function BuscarPage() {
                 value={origen}
                 onChange={(e) => setOrigen(e.target.value)}
                 placeholder="¿Desde dónde sales?"
-                className="flex-1 bg-field rounded-[8px] px-3 py-2.5 text-[15px] outline-none focus:ring-2 focus:ring-brand"
+                className="flex-1 bg-field rounded-[8px] h-14 px-3 text-[16px] outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
             <div className="flex items-center gap-3">
@@ -121,7 +121,7 @@ function BuscarPage() {
                 value={destino}
                 onChange={(e) => setDestino(e.target.value)}
                 placeholder="¿A dónde vas?"
-                className="flex-1 bg-field rounded-[8px] px-3 py-2.5 text-[15px] outline-none focus:ring-2 focus:ring-brand"
+                className="flex-1 bg-field rounded-[8px] h-14 px-3 text-[16px] outline-none focus:ring-2 focus:ring-brand"
                 onKeyDown={(e) => e.key === "Enter" && submit()}
               />
             </div>
@@ -159,7 +159,7 @@ function BuscarPage() {
           <button
             disabled={!origen.trim() || !destino.trim()}
             onClick={submit}
-            className="w-full h-12 rounded-[8px] bg-brand text-white font-bold text-[16px] disabled:opacity-40"
+            className="w-full h-14 rounded-[8px] bg-brand text-white font-bold text-[16px] disabled:opacity-40"
           >
             Ver opciones
           </button>

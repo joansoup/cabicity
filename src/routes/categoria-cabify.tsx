@@ -133,13 +133,13 @@ function CategoriaCabify() {
           <div className="flex items-center gap-2">
             <button
               onClick={continuar}
-              className="flex-1 h-12 rounded-[8px] bg-brand text-white font-bold text-[16px]"
+              className="flex-1 h-14 rounded-[8px] bg-brand text-white font-bold text-[16px]"
             >
               Pedir ahora
             </button>
             <button
               aria-label="Programar"
-              className="w-12 h-12 rounded-[14px] bg-brand/10 grid place-items-center text-brand"
+              className="w-14 h-14 rounded-[14px] bg-brand/10 grid place-items-center text-brand"
             >
               <Calendar size={20} />
             </button>

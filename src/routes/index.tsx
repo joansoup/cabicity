@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search, Clock, Home } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { setTrip } from "@/lib/transit/store";
@@ -44,6 +44,20 @@ const IC_ENVIAR = `<svg width="24" height="24" viewBox="48 0 24 24" fill="none" 
 function HomePage() {
   const navigate = useNavigate();
   const [servicio, setServicio] = useState("cabify");
+  // Medimos la altura real de la hoja inferior para (1) centrar la ubicación en
+  // el área visible del mapa y (2) colocar el botón "centrar mi ubicación"
+  // SIEMPRE por encima de la hoja, sin pisarla, pase lo que pase con el contenido.
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const [obscuredBottom, setObscuredBottom] = useState(440);
+  useEffect(() => {
+    const measure = () => {
+      const el = sheetRef.current;
+      if (el) setObscuredBottom(el.offsetHeight + 72); // 72px = bottom de la hoja
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   const goSearch = (destino?: string) => {
     setTrip({ origen: "Calle de Pradillo, 42, Chamartín, 28002 Madrid", destino: destino ?? "", criterio: "equilibrado" });
@@ -58,15 +72,15 @@ function HomePage() {
   return (
     <PhoneFrame transparentStatusBar>
       <div className="absolute inset-0">
-        <MapaMapbox centro={[-3.6708, 40.449]} zoom={14} fitRuta={false} interactive ubicacionActual={[-3.6708, 40.449]} paddingBottom={460} />
+        <MapaMapbox centro={[-3.6708, 40.449]} zoom={14} fitRuta={false} interactive ubicacionActual={[-3.6708, 40.449]} paddingBottom={obscuredBottom} />
       </div>
 
       {/* avatar */}
       <img src="/illustrations/avatar-ivan.svg" alt="Iván" className="absolute top-11 left-4 w-12 h-12 rounded-full object-cover z-10" style={{ boxShadow: "var(--shadow-rised)" }} />
 
 
-      {/* bottom sheet */}
-      <div className="absolute left-0 right-0 bottom-[72px] bg-surface rounded-t-[24px] pt-2 pb-6 flex flex-col gap-3" style={{ boxShadow: "var(--shadow-rised)" }}>
+      {/* bottom sheet (su borde inferior conecta con la barra de navegación) */}
+      <div ref={sheetRef} className="absolute left-0 right-0 bottom-[72px] bg-surface rounded-t-[24px] pt-2 pb-7 flex flex-col gap-3" style={{ boxShadow: "var(--shadow-rised)" }}>
         <div className="mx-auto h-1 w-9 rounded-full" style={{ background: "var(--sheet-handle)" }} />
         <h1 className="px-4 text-[18px] font-bold leading-6">Hola, Iván</h1>
 
@@ -134,7 +148,7 @@ function HomePage() {
           para que las pestañas no queden pisadas por la barra del sistema. */}
       <div
         className="absolute left-0 right-0 bottom-0 z-30"
-        style={{ height: "calc(88px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ height: "calc(100px + env(safe-area-inset-bottom, 0px))" }}
       >
         {/* forma blanca con muesca central; llena toda la barra (incl. área segura) */}
         <div className="absolute inset-0" dangerouslySetInnerHTML={{ __html: UNION_SVG }} />

@@ -75,14 +75,14 @@ function Resultados() {
             <div className="flex-1 min-w-0 flex flex-col gap-1.5">
               <button
                 onClick={() => navigate({ to: "/buscar" })}
-                className="flex items-center gap-2.5 bg-field rounded-[8px] px-3 py-2 text-left"
+                className="flex items-center gap-2.5 bg-field rounded-[8px] h-14 px-3 text-left"
               >
                 <img src="/icons/ic_set_address_1.svg" alt="" className="w-5 h-5 shrink-0" />
                 <span className="flex-1 min-w-0 text-[14px] text-text truncate">{trip.origen}</span>
               </button>
               <button
                 onClick={() => navigate({ to: "/buscar" })}
-                className="flex items-center gap-2.5 bg-field rounded-[8px] px-3 py-2 text-left"
+                className="flex items-center gap-2.5 bg-field rounded-[8px] h-14 px-3 text-left"
               >
                 <img src="/icons/ic_set_address_2.svg" alt="" className="w-5 h-5 shrink-0" />
                 <span className="flex-1 min-w-0 text-[14px] font-medium text-text truncate">{trip.destino}</span>

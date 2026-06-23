@@ -181,7 +181,7 @@ function Nav() {
 
           <button
             onClick={() => { clearTrip(); navigate({ to: "/" }); }}
-            className="mt-auto w-full h-12 rounded-[8px] bg-brand text-white font-bold text-[16px]"
+            className="mt-auto w-full h-14 rounded-[8px] bg-brand text-white font-bold text-[16px]"
           >
             Volver al inicio
           </button>
@@ -299,7 +299,7 @@ function Nav() {
             ) : (
               <button
                 onClick={next}
-                className="w-full h-12 rounded-[8px] bg-brand text-white font-bold text-[16px] flex items-center justify-center gap-2"
+                className="w-full h-14 rounded-[8px] bg-brand text-white font-bold text-[16px] flex items-center justify-center gap-2"
               >
                 Siguiente paso <ChevronRight size={18} />
               </button>
@@ -347,7 +347,7 @@ function QrScanner({ escaneando, onScan }: { escaneando: boolean; onScan: () => 
       <button
         onClick={onScan}
         disabled={escaneando}
-        className="w-full h-12 rounded-[8px] bg-brand text-white font-bold text-[16px] flex items-center justify-center gap-2 disabled:opacity-60"
+        className="w-full h-14 rounded-[8px] bg-brand text-white font-bold text-[16px] flex items-center justify-center gap-2 disabled:opacity-60"
       >
         {escaneando ? "Desbloqueando…" : "Escanear QR"}
       </button>

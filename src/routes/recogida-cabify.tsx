@@ -239,7 +239,7 @@ function RecogidaCabify() {
           <div className="p-4 border-t border-border">
             <button
               onClick={() => navigate({ to: "/navegacion" })}
-              className="w-full h-12 rounded-[8px] bg-brand text-white font-bold text-[16px]"
+              className="w-full h-14 rounded-[8px] bg-brand text-white font-bold text-[16px]"
             >
               {llegado ? "Empezar viaje" : "Ver detalles del viaje"}
             </button>
