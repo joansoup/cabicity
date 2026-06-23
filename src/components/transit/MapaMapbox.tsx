@@ -150,6 +150,7 @@ export function MapaMapbox({
       });
       mapInstance = map;
       mapRef.current = map;
+      mapboxRef.current = mapboxgl;
       // Reserva espacio en la parte inferior (bottom sheet) para que el centro
       // visual quede en el área realmente visible del mapa.
       if (paddingBottom > 0) {
