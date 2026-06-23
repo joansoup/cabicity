@@ -134,7 +134,7 @@ function Resultados() {
               )}
 
               {(() => {
-                const v = fraseVenta(op, masBarata);
+                const v = fraseVenta(op, metroRef);
                 return v ? (
                   <div className="self-start bg-eco-bg text-eco-text rounded-full px-3 py-1 text-[12px] font-bold">
                     {v}
