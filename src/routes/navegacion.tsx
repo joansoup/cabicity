@@ -4,10 +4,10 @@ import { ArrowLeft, Volume2, VolumeX, ChevronRight, Sparkles } from "lucide-reac
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
 import { fmtEur, fmtMin, fmtCo2, fmtEurCashback } from "@/lib/transit/format";
-import { ModoIcon, modoColor } from "@/components/transit/ModoIcon";
+import { ModoIcon } from "@/components/transit/ModoIcon";
 import type { Paso, Tramo } from "@/lib/transit/engine";
-import { buildRouteGeo, getMapboxToken } from "@/lib/transit/routeGeo";
-import { MapboxRoute } from "@/components/transit/MapboxRoute";
+import { buildRouteGeo } from "@/lib/transit/routeGeo";
+import { MapaMapbox, type MapaRutaSegmento, type MapaMarcador } from "@/components/transit/MapaMapbox";
 
 export const Route = createFileRoute("/navegacion")({
   component: Nav,
@@ -83,11 +83,29 @@ function Nav() {
   };
 
   const op = trip?.seleccionada;
-  const mbToken = getMapboxToken();
   const geo = useMemo(
     () => (op ? buildRouteGeo(op, trip?.destino || op.id) : null),
     [op, trip?.destino]
   );
+
+  const rutaSegmentos: MapaRutaSegmento[] = useMemo(
+    () =>
+      geo
+        ? geo.segments.map((s) => ({
+            coords: s.coords,
+            dashed: s.tipo === "andando",
+          }))
+        : [],
+    [geo]
+  );
+
+  const marcadores: MapaMarcador[] = useMemo(() => {
+    if (!geo) return [];
+    return geo.stops.map((pos, i) => ({
+      pos,
+      tamano: i === 0 || i === geo.stops.length - 1 ? 16 : 12,
+    }));
+  }, [geo]);
 
   if (!trip?.seleccionada || !actual || !op || !geo) return <PhoneFrame><div /></PhoneFrame>;
 
@@ -143,11 +161,14 @@ function Nav() {
       <div className="absolute inset-0 flex flex-col bg-bg">
         {/* mapa */}
         <div className="relative h-[40%] bg-bg-subdued overflow-hidden">
-          {mbToken ? (
-            <MapboxRoute token={mbToken} geo={geo} currentPos={currentPos} />
-          ) : (
-            <SchematicMap tramos={op.tramos} progreso={progreso} />
-          )}
+          <MapaMapbox
+            centro={geo.origen}
+            zoom={13}
+            ruta={rutaSegmentos}
+            marcadores={marcadores}
+            marcadorActivo={currentPos}
+            fitRuta
+          />
           <button
             onClick={() => navigate({ to: "/viaje" })}
             className="absolute top-3 left-3 w-10 h-10 rounded-full bg-surface grid place-items-center z-10"
@@ -223,33 +244,3 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
   );
 }
 
-function SchematicMap({ tramos, progreso }: { tramos: Tramo[]; progreso: number }) {
-  const total = tramos.reduce((s, t) => s + t.distanciaKm, 0) || 1;
-  let acc = 0;
-  return (
-    <svg viewBox="0 0 390 340" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <pattern id="grid2" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e6e6ed" strokeWidth="1" />
-        </pattern>
-      </defs>
-      <rect width="390" height="340" fill="#f1f0f6" />
-      <rect width="390" height="340" fill="url(#grid2)" />
-
-      {tramos.map((t, i) => {
-        const y0 = 40 + (acc / total) * 260;
-        acc += t.distanciaKm;
-        const y1 = 40 + (acc / total) * 260;
-        const dash = t.tipo === "andando" ? "6 6" : undefined;
-        return (
-          <g key={i}>
-            <line x1="195" y1={y0} x2="195" y2={y1} stroke={modoColor(t.tipo)} strokeWidth="8" strokeLinecap="round" strokeDasharray={dash} />
-            <circle cx="195" cy={y0} r="8" fill="white" stroke={modoColor(t.tipo)} strokeWidth="3" />
-          </g>
-        );
-      })}
-      <circle cx="195" cy="300" r="8" fill="white" stroke="#1a1a1c" strokeWidth="3" />
-      <circle cx="195" cy={40 + (progreso / 100) * 260} r="10" fill="#7145d6" stroke="white" strokeWidth="4" />
-    </svg>
-  );
-}
