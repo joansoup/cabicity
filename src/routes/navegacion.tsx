@@ -130,15 +130,23 @@ function Nav() {
     );
   }
 
+  const mbToken = getMapboxToken();
+  const geo = useMemo(() => buildRouteGeo(op, trip.destino || op.id), [op, trip.destino]);
+  const currentPos = geo.stepPositions[idx] ?? geo.destino;
+
   return (
     <PhoneFrame>
       <div className="absolute inset-0 flex flex-col bg-bg">
-        {/* mapa esquemático */}
+        {/* mapa */}
         <div className="relative h-[40%] bg-bg-subdued overflow-hidden">
-          <SchematicMap tramos={op.tramos} progreso={progreso} />
+          {mbToken ? (
+            <MapboxRoute token={mbToken} geo={geo} currentPos={currentPos} />
+          ) : (
+            <SchematicMap tramos={op.tramos} progreso={progreso} />
+          )}
           <button
             onClick={() => navigate({ to: "/viaje" })}
-            className="absolute top-3 left-3 w-10 h-10 rounded-full bg-surface grid place-items-center"
+            className="absolute top-3 left-3 w-10 h-10 rounded-full bg-surface grid place-items-center z-10"
             style={{ boxShadow: "var(--shadow-rised)" }}
           >
             <ArrowLeft size={20} />
@@ -150,7 +158,7 @@ function Nav() {
               localStorage.setItem("ct-voz", nv ? "1" : "0");
               if (!nv && typeof window !== "undefined") window.speechSynthesis?.cancel();
             }}
-            className="absolute top-3 right-3 w-10 h-10 rounded-full bg-surface grid place-items-center"
+            className="absolute top-3 right-3 w-10 h-10 rounded-full bg-surface grid place-items-center z-10"
             style={{ boxShadow: "var(--shadow-rised)" }}
           >
             {voz ? <Volume2 size={20} /> : <VolumeX size={20} className="text-text-secondary" />}
