@@ -161,11 +161,14 @@ function Nav() {
       <div className="absolute inset-0 flex flex-col bg-bg">
         {/* mapa */}
         <div className="relative h-[40%] bg-bg-subdued overflow-hidden">
-          {mbToken ? (
-            <MapboxRoute token={mbToken} geo={geo} currentPos={currentPos} />
-          ) : (
-            <SchematicMap tramos={op.tramos} progreso={progreso} />
-          )}
+          <MapaMapbox
+            centro={geo.origen}
+            zoom={13}
+            ruta={rutaSegmentos}
+            marcadores={marcadores}
+            marcadorActivo={currentPos}
+            fitRuta
+          />
           <button
             onClick={() => navigate({ to: "/viaje" })}
             className="absolute top-3 left-3 w-10 h-10 rounded-full bg-surface grid place-items-center z-10"
