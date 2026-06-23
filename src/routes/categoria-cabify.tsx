@@ -72,10 +72,8 @@ function CategoriaCabify() {
           {categorias.map((c) => {
             const activa = c.id === seleccion;
             const esEco = c.id === "eco";
-            const tachadoRef = CABIFY_CATEGORIAS.find((x) => x.id === "estandar");
-            const precioTachado = esEco && tachadoRef && eco
-              ? Math.round((elegida.totalEur - eco.precioCabifyEur + (eco.precioCabifyEur / eco.multiplicador) * tachadoRef.multiplicador) * 100) / 100
-              : null;
+            const tachado = esEco ? categorias.find((x) => x.id === "estandar")?.totalEur ?? null : null;
+            const precioTachado = tachado && tachado > c.totalEur ? tachado : null;
 
             return (
               <button
