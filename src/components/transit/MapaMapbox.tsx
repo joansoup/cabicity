@@ -44,6 +44,8 @@ interface Props {
   fitRuta?: boolean;
   className?: string;
   interactive?: boolean;
+  /** Padding (px) que reserva el viewport. Útil cuando un bottom sheet cubre el mapa. */
+  paddingBottom?: number;
 }
 
 function MapaFallback({ className }: { className?: string }) {
