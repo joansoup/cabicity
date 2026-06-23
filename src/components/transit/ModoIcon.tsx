@@ -112,23 +112,15 @@ export function modoBrandBg(tipo: ModoTipo): string {
 // el logo quepa centrado sin desbordarse.
 export function ModoChip({ tipo, size = 40, className }: { tipo: ModoTipo; size?: number; className?: string }) {
   const bg = modoBrandBg(tipo);
-  if (tipo === "ave") {
-    const h = Math.round(size * 0.44);
-    return (
-      <div
-        className={`grid place-items-center shrink-0 overflow-hidden ${className ?? ""}`}
-        style={{ height: size, paddingInline: Math.round(size * 0.16), borderRadius: Math.round(size * 0.3), background: bg }}
-      >
-        <ModoIcon tipo={tipo} size={h} />
-      </div>
-    );
-  }
+  // AVE usa el wordmark ancho de Renfe: lo encajamos pequeño y centrado dentro
+  // del círculo para que no se desborde (manteniendo el chip circular como el resto).
+  const iconSize = tipo === "ave" ? Math.round(size * 0.32) : Math.round(size * 0.55);
   return (
     <div
-      className={`grid place-items-center rounded-full shrink-0 ${className ?? ""}`}
+      className={`grid place-items-center rounded-full shrink-0 overflow-hidden ${className ?? ""}`}
       style={{ width: size, height: size, background: bg }}
     >
-      <ModoIcon tipo={tipo} size={Math.round(size * 0.55)} />
+      <ModoIcon tipo={tipo} size={iconSize} />
     </div>
   );
 }

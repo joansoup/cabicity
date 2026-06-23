@@ -25,6 +25,7 @@ export interface MapaVehiculo {
   svgUrl: string;
   rotacionDeg?: number;
   tamano?: number; // ancho en px
+  seguir?: boolean; // el mapa recentra siguiendo al vehículo (modo navegación)
 }
 
 interface Props {
@@ -128,6 +129,8 @@ export function MapaMapbox({
   focoRef.current = ubicacionActual ?? marcadorActivo ?? centro;
   // Se muestra el botón cuando el usuario ha desplazado el mapa a mano.
   const [desviado, setDesviado] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+  const drawnCountRef = useRef(0);
 
   const centrarUbicacion = () => {
     const map = mapRef.current as { easeTo: (o: unknown) => void; getZoom: () => number } | null;
@@ -200,48 +203,8 @@ export function MapaMapbox({
           wrap.appendChild(dot);
           new mapboxgl.Marker({ element: wrap, anchor: "center" }).setLngLat(ubicacionActual).addTo(map);
         }
-        // Pintar ruta
-        if (ruta && ruta.length > 0) {
-          ruta.forEach((seg, i) => {
-            const id = `seg-${i}`;
-            map.addSource(id, {
-              type: "geojson",
-              data: {
-                type: "Feature",
-                properties: {},
-                geometry: { type: "LineString", coordinates: seg.coords },
-              },
-            });
-            map.addLayer({
-              id: `${id}-casing`,
-              type: "line",
-              source: id,
-              layout: { "line-cap": "round", "line-join": "round" },
-              paint: {
-                "line-color": "#ffffff",
-                "line-width": 10,
-                "line-opacity": 1,
-              },
-            });
-            map.addLayer({
-              id: `${id}-line`,
-              type: "line",
-              source: id,
-              layout: { "line-cap": "round", "line-join": "round" },
-              paint: {
-                "line-color": seg.color || routeColor,
-                "line-width": 6,
-                ...(seg.dashed ? { "line-dasharray": [1.2, 1.6] } : {}),
-              },
-            });
-          });
-
-          if (fitRuta) {
-            const bounds = new mapboxgl.LngLatBounds();
-            ruta.forEach((s) => s.coords.forEach((c) => bounds.extend(c)));
-            map.fitBounds(bounds, { padding: 56, duration: 0, maxZoom: 15 });
-          }
-        }
+        // La ruta se pinta (y repinta al ajustarse a las calles) en un efecto
+        // dedicado más abajo, en cuanto el mapa está listo.
 
         // Paradas estáticas
         marcadores?.forEach((m) => {
@@ -291,6 +254,7 @@ export function MapaMapbox({
             .addTo(map);
         }
         mapLoadedRef.current = true;
+        setMapReady(true);
       });
     })();
 
@@ -364,7 +328,60 @@ export function MapaMapbox({
         vehiculoImgRef.current.style.transform = `rotate(${vehiculo.rotacionDeg ?? 0}deg)`;
       }
     }
-  }, [vehiculo?.pos, vehiculo?.rotacionDeg]);
+    // Modo navegación: el mapa sigue al vehículo recentrándose en él.
+    if (vehiculo.seguir) {
+      try { (map as { setCenter: (p: LngLat) => void }).setCenter(vehiculo.pos); } catch { /* ignore */ }
+    }
+  }, [vehiculo?.pos, vehiculo?.rotacionDeg, vehiculo?.seguir]);
+
+  // Pinta (y repinta) la ruta cuando cambia — p. ej. al ajustarse a las calles
+  // (Mapbox Directions) o al cambiar de opción. Limpia siempre lo anterior.
+  useEffect(() => {
+    const map = mapRef.current as {
+      getLayer: (id: string) => unknown; removeLayer: (id: string) => void;
+      getSource: (id: string) => unknown; removeSource: (id: string) => void;
+      addSource: (id: string, s: unknown) => void; addLayer: (l: unknown) => void;
+      fitBounds: (b: unknown, o: unknown) => void;
+    } | null;
+    const mapboxgl = mapboxRef.current as { LngLatBounds: new () => { extend: (c: LngLat) => void } } | null;
+    if (!map || !mapReady) return;
+
+    for (let i = 0; i < drawnCountRef.current; i++) {
+      for (const lid of [`seg-${i}-line`, `seg-${i}-casing`]) {
+        try { if (map.getLayer(lid)) map.removeLayer(lid); } catch { /* ignore */ }
+      }
+      try { if (map.getSource(`seg-${i}`)) map.removeSource(`seg-${i}`); } catch { /* ignore */ }
+    }
+    drawnCountRef.current = 0;
+    if (!ruta || ruta.length === 0) return;
+
+    const routeColor =
+      getComputedStyle(document.documentElement).getPropertyValue("--route").trim() || "#7145d6";
+    ruta.forEach((seg, i) => {
+      const id = `seg-${i}`;
+      map.addSource(id, {
+        type: "geojson",
+        data: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: seg.coords } },
+      });
+      map.addLayer({
+        id: `${id}-casing`, type: "line", source: id,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: { "line-color": "#ffffff", "line-width": 10, "line-opacity": 1 },
+      });
+      map.addLayer({
+        id: `${id}-line`, type: "line", source: id,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: { "line-color": seg.color || routeColor, "line-width": 6, ...(seg.dashed ? { "line-dasharray": [1.2, 1.6] } : {}) },
+      });
+    });
+    drawnCountRef.current = ruta.length;
+
+    if (fitRuta && mapboxgl) {
+      const bounds = new mapboxgl.LngLatBounds();
+      ruta.forEach((s) => s.coords.forEach((c) => bounds.extend(c)));
+      try { map.fitBounds(bounds, { padding: 56, duration: 0, maxZoom: 15 }); } catch { /* ignore */ }
+    }
+  }, [mapReady, ruta, fitRuta]);
 
   if (!token) {
     return <MapaFallback className={className} />;

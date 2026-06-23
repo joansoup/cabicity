@@ -8,7 +8,7 @@ import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
 import { ModoChip } from "@/components/transit/ModoIcon";
 import { MetroLineBadge, extractMetroLinea, CercaniasLineBadge, extractCercaniasLinea } from "@/components/transit/MetroLineBadge";
 import type { Paso, Tramo } from "@/lib/transit/engine";
-import { buildRouteGeo, type LngLat } from "@/lib/transit/routeGeo";
+import { buildRouteGeo, snapRouteGeoToRoads, type LngLat, type RouteGeo } from "@/lib/transit/routeGeo";
 import { MapaMapbox, type MapaRutaSegmento, type MapaMarcador } from "@/components/transit/MapaMapbox";
 import { speakRosalia } from "@/lib/tts.functions";
 
@@ -27,6 +27,19 @@ function aplanar(tramos: Tramo[]): PasoPlano[] {
   const out: PasoPlano[] = [];
   tramos.forEach((t, ti) => t.pasos.forEach((p, pi) => out.push({ tramoIdx: ti, pasoIdx: pi, paso: p, tramo: t })));
   return out;
+}
+
+// Distancia aproximada (en grados corregidos por latitud) y rumbo entre dos
+// puntos, para mover y orientar el coche a lo largo de la polilínea.
+function distAprox(a: LngLat, b: LngLat): number {
+  const dx = (b[0] - a[0]) * Math.cos((a[1] * Math.PI) / 180);
+  const dy = b[1] - a[1];
+  return Math.hypot(dx, dy);
+}
+function rumboDeg(a: LngLat, b: LngLat): number {
+  const dLng = b[0] - a[0], dLat = b[1] - a[1];
+  if (!dLng && !dLat) return 0;
+  return (Math.atan2(dLng, dLat) * 180) / Math.PI - 90;
 }
 
 function Nav() {
@@ -118,10 +131,27 @@ function Nav() {
   const op = trip?.seleccionada;
   const destinoReal: LngLat | undefined =
     trip?.destinoLng != null && trip?.destinoLat != null ? [trip.destinoLng, trip.destinoLat] : undefined;
-  const geo = useMemo(
+  const baseGeo = useMemo(
     () => (op ? buildRouteGeo(op, trip?.destino || op.id, destinoReal) : null),
     [op, trip?.destino, destinoReal?.[0], destinoReal?.[1]]
   );
+
+  // Ajuste de la ruta a las CALLES reales (Mapbox Directions) para los tramos
+  // que circulan por viario (Cabify, bus, a pie, BiciMAD). Mientras llega, se
+  // muestra la línea recta; al resolverse, la polilínea sigue las calles.
+  const [snapped, setSnapped] = useState<RouteGeo | null>(null);
+  useEffect(() => {
+    setSnapped(null);
+    if (!baseGeo || !op) return;
+    let cancelled = false;
+    const ctrl = new AbortController();
+    snapRouteGeoToRoads(baseGeo, op, ctrl.signal)
+      .then((s) => { if (!cancelled) setSnapped(s); })
+      .catch(() => { /* sin red: mantenemos la recta */ });
+    return () => { cancelled = true; ctrl.abort(); };
+  }, [baseGeo, op]);
+
+  const geo = snapped ?? baseGeo;
 
   const rutaSegmentos: MapaRutaSegmento[] = useMemo(
     () =>
@@ -155,6 +185,44 @@ function Nav() {
     if (dLng === 0 && dLat === 0) return 0;
     return (Math.atan2(dLng, dLat) * 180) / Math.PI - 90;
   }, [currentPos, siguientePos]);
+
+  // Coche en marcha: durante un tramo en Cabify, el coche AVANZA por la
+  // polilínea (ya ajustada a las calles) de inicio a fin, y el mapa lo sigue.
+  // Al terminar el tramo, avanza al siguiente paso (o llega al destino).
+  const [carPos, setCarPos] = useState<LngLat | null>(null);
+  const carRotRef = useRef(0);
+  useEffect(() => {
+    if (!geo || llegado || actual?.tramo.tipo !== "cabify") { setCarPos(null); return; }
+    const seg = geo.segments[actual.tramoIdx];
+    if (!seg || seg.coords.length < 2) return;
+    const pts = seg.coords;
+    const segLens: number[] = [];
+    let total = 0;
+    for (let i = 1; i < pts.length; i++) { const d = distAprox(pts[i - 1], pts[i]); segLens.push(d); total += d; }
+    if (total <= 0) return;
+    // Ritmo "de demo": recorre el tramo en 12–28 s, según su duración.
+    const durMs = Math.min(28000, Math.max(12000, (actual.paso.duracionMin || 10) * 1100));
+    const t0 = performance.now();
+    setCarPos(pts[0]);
+    carRotRef.current = rumboDeg(pts[0], pts[1]);
+    const id = setInterval(() => {
+      const t = Math.min(1, (performance.now() - t0) / durMs);
+      const target = t * total;
+      let acc = 0, i = 0;
+      while (i < segLens.length - 1 && acc + segLens[i] < target) { acc += segLens[i]; i++; }
+      const f = segLens[i] ? Math.min(1, (target - acc) / segLens[i]) : 0;
+      const a = pts[i], b = pts[i + 1] ?? pts[i];
+      setCarPos([a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]);
+      carRotRef.current = rumboDeg(a, b);
+      if (t >= 1) {
+        clearInterval(id);
+        if (idx >= pasos.length - 1) { setLlegado(true); decir("Has llegado a tu destino"); }
+        else setIdx((x) => x + 1);
+      }
+    }, 40);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, geo, llegado]);
 
   if (!trip?.seleccionada || !actual || !op || !geo) return <PhoneFrame><div /></PhoneFrame>;
 
@@ -218,7 +286,7 @@ function Nav() {
             marcadorActivo={enCabify ? undefined : currentPos}
             vehiculo={
               enCabify
-                ? { pos: currentPos, svgUrl: "/icons/ic_vehicle_cenital.svg", rotacionDeg: rotCoche, tamano: 48 }
+                ? { pos: carPos ?? currentPos, svgUrl: "/icons/ic_vehicle_cenital.svg", rotacionDeg: carRotRef.current, tamano: 48, seguir: true }
                 : undefined
             }
             fitRuta
