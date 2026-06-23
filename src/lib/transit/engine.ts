@@ -304,6 +304,7 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
       tramos.push(t);
       cabifyPrecio += MODOS.cabify.price(cabifyKm);
       cabifyCo2 += MODOS.cabify.co2 * cabifyKm;
+      puntos += PUNTOS_POR_KM.cabify * cabifyKm;
     } else {
       let t: Tramo;
       if (m === "metro") t = tramoMetro(principalKm, seed);
@@ -315,17 +316,16 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
       tramos.push(t);
       publicoPrecio += MODOS[m].price(principalKm);
       publicoCo2 += MODOS[m].co2 * principalKm;
-      // Solo los tramos sostenibles aportan puntos Cabify Club.
-      if (SOSTENIBLE[m]) puntos += PUNTOS_POR_KM[m] * principalKm;
+      puntos += PUNTOS_POR_KM[m] * principalKm;
     }
   });
 
   const fee = modos.includes("ave") ? 4 : 0.5;
   const precio = round2(cabifyPrecio + publicoPrecio + fee);
   const co2 = round2(cabifyCo2 + publicoCo2);
-  // Una ruta es sostenible si al menos un tramo lo es; si no, no hay cashback.
+  // Una ruta es sostenible si al menos un tramo lo es.
   const esSostenible = modos.some((m) => SOSTENIBLE[m]);
-  puntos = esSostenible ? capPuntos(puntos, interurbano) : 0;
+  puntos = capPuntos(puntos, interurbano);
   const eta = tramos.reduce((s, t) => s + t.duracionMin, 0) + transbordos * 8;
 
   // insertar tramos de transbordo a pie ligeros (representativos)
