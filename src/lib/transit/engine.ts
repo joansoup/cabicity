@@ -110,9 +110,10 @@ const MODOS = {
 } as const;
 
 // Modos sostenibles: a pie, bici pública y transporte público/ferroviario.
-// Cabify (coche con conductor) NO es sostenible y nunca genera cashback.
+// Todo lo que vaya en Cabify cuenta como eco (flota cada vez más electrificada
+// y compensación de CO₂ de la compañía). El bus EMT NO se marca como eco.
 const SOSTENIBLE: Record<ModoTipo, boolean> = {
-  andando: true, bicimad: true, metro: true, cercanias: true, ave: true, bus: true, cabify: false,
+  andando: true, bicimad: true, metro: true, cercanias: true, ave: true, bus: false, cabify: true,
 };
 
 // Puntos Cabify Club por km. Los modos sostenibles dan más; Cabify (coche con
