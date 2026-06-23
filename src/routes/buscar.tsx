@@ -17,7 +17,7 @@ const RECIENTES: Sug[] = [
   { tipo: "casa", titulo: "Casa", sub: "Calle de las Flores, 8, Madrid", lng: -3.7038, lat: 40.422 },
   { tipo: "reciente", titulo: "El Corte Inglés", sub: "Calle Princesa, 64", lng: -3.7155, lat: 40.4318 },
   { tipo: "reciente", titulo: "Aeropuerto Barajas - T2", sub: "Barajas, Madrid", lng: -3.5935, lat: 40.4729 },
-  { tipo: "reciente", titulo: "AVE Madrid - Sevilla", sub: "Estación Madrid Atocha", lng: -3.6907, lat: 40.4067 },
+  { tipo: "reciente", titulo: "AVE a Sevilla", sub: "Sevilla Santa Justa (AVE)", lng: -5.9759, lat: 37.3911 },
 ];
 
 // Geocodifica una consulta y devuelve sus coordenadas (o undefined). Se usa al

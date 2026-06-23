@@ -391,6 +391,9 @@ function tramoCaminarA(coords: LngLat[], hacia: string): Tramo {
 function opcionMetroReal(destino: LngLat): Opcion | null {
   const r = rutaMetro(ORIGEN_COORDS, destino);
   if (!r) return null;
+  // Si origen o destino quedan lejos de cualquier boca de Metro, no es una
+  // opción realista (habría que caminar demasiado): la descartamos.
+  if (r.caminarOrigenM > 2500 || r.caminarDestinoM > 2500) return null;
   const tramos: Tramo[] = [];
   let distKm = 0;
 
@@ -433,6 +436,9 @@ function opcionMetroReal(destino: LngLat): Opcion | null {
 function opcionCercaniasReal(destino: LngLat): Opcion | null {
   const r = rutaCercanias(ORIGEN_COORDS, destino);
   if (!r) return null;
+  // Cercanías solo tiene sentido si ambos extremos están razonablemente cerca de
+  // una estación (si no, caminarías kilómetros hasta el tren).
+  if (r.caminarOrigenM > 3500 || r.caminarDestinoM > 3500) return null;
   const tramos: Tramo[] = [];
   let distKm = 0;
 
@@ -460,6 +466,9 @@ function opcionCercaniasReal(destino: LngLat): Opcion | null {
     tramos.push(tramoCaminarA([dEnd, destino], "tu destino"));
   }
 
+  // El tramo de tren debe ser sustancial; si no, Cercanías no aporta nada.
+  if (distKm < 4) return null;
+
   distKm = Math.round(distKm * 10) / 10;
   const eta = tramos.reduce((s, t) => s + t.duracionMin, 0);
   const co2 = round2(MODOS.cercanias.co2 * distKm);
@@ -474,42 +483,70 @@ function opcionCercaniasReal(destino: LngLat): Opcion | null {
 // --- API pública -----------------------------------------------------------
 export type Criterio = "equilibrado" | "rapido" | "barato" | "ecologico" | "seguro";
 
+// Ciudades/destinos interurbanos: activan AVE aunque el geocoding devuelva una
+// estación dentro de Madrid (p. ej. "AVE Madrid - Sevilla" -> Atocha).
+const CIUDADES_LEJANAS =
+  /sevilla|barcelona|valencia|zaragoza|m[áa]laga|c[óo]rdoba|alicante|murcia|valladolid|le[óo]n|salamanca|albacete|cuenca|ciudad real|puertollano|tarragona|lleida|girona/i;
+
 export function generarOpciones(
   destino: string,
   coords?: [number, number]
 ): { distKm: number; opciones: Opcion[] } {
-  const distKm = distanciaPara(destino);
   const seed = hashStr(destino || "x");
+  const esLejano = CIUDADES_LEJANAS.test(destino);
+
+  // Distancia REAL del trayecto. Con coordenadas (y destino urbano) usamos la
+  // distancia geográfica real ×1.3 (factor de recorrido por calle); si es un
+  // destino interurbano por nombre o no hay coords, usamos el modelo por nombre.
+  const distKm =
+    coords && !esLejano
+      ? Math.round(haversineKm(ORIGEN_COORDS, coords) * 1.3 * 10) / 10
+      : distanciaPara(destino);
+
+  const interurbano = esLejano || distKm >= 60;
   const opciones: Opcion[] = [];
 
-  // Si tenemos coordenadas reales del destino, enrutamos Metro y Cercanías sobre
-  // las redes reales (GTFS Metro / red CRTM). Si no, caemos al modelo sintético.
-  const metroReal = coords ? opcionMetroReal(coords) : null;
-  const cercaniasReal = coords ? opcionCercaniasReal(coords) : null;
+  // Rutas REALES (Metro GTFS / Cercanías CRTM). Solo se calculan dentro de su
+  // rango razonable de uso; los propios builders descartan trayectos absurdos.
+  const metroReal = coords && !interurbano && distKm >= 0.9 && distKm <= 35 ? opcionMetroReal(coords) : null;
+  const cercaniasReal = coords && !interurbano && distKm >= 7 ? opcionCercaniasReal(coords) : null;
+
+  // Umbrales realistas por modo (Madrid). Evita ofrecer Cercanías/AVE/combos en
+  // trayectos cortos donde solo tienen sentido andar, BiciMAD, Metro o Cabify.
+  const incluir: Record<ModoTipo, boolean> = {
+    andando: distKm <= 2.2,
+    bicimad: distKm >= 0.4 && distKm <= 6.5,
+    metro: !!metroReal,
+    cercanias: !!cercaniasReal,
+    bus: distKm >= 0.8 && distKm <= 12,
+    ave: interurbano,
+    cabify: true,
+  };
 
   (["cabify", "metro", "cercanias", "ave", "andando", "bicimad", "bus"] as ModoTipo[]).forEach((m) => {
+    if (!incluir[m]) return;
     if (m === "metro" && metroReal) { opciones.push(metroReal); return; }
     if (m === "cercanias" && cercaniasReal) { opciones.push(cercaniasReal); return; }
-    if (MODOS[m].avail(distKm)) opciones.push(opcionSimple(m, distKm, seed));
+    opciones.push(opcionSimple(m, distKm, seed));
   });
 
-  // combos
-  const interurbano = distKm > 60;
+  // Combos: solo cuando aportan valor real (interurbano, o trayectos largos en
+  // los que un Cabify de primera/última milla a la estación ahorra tiempo).
   if (interurbano) {
     const c1 = opcionCombo(["cabify", "ave", "cabify"], distKm, seed, "cabify-ave-cabify");
     const c2 = opcionCombo(["cabify", "ave"], distKm, seed, "cabify-ave");
     const c3 = opcionCombo(["ave", "cabify"], distKm, seed, "ave-cabify");
     [c1, c2, c3].forEach((c) => c && opciones.push(c));
-  } else if (distKm > 4) {
-    if (MODOS.metro.avail(distKm - 3.5)) {
-      const c = opcionCombo(["cabify", "metro"], distKm, seed, "cabify-metro");
-      if (c) opciones.push(c);
+  } else if (distKm >= 6) {
+    const c = opcionCombo(["cabify", "metro"], distKm, seed, "cabify-metro");
+    if (c) opciones.push(c);
+    if (distKm >= 9) {
       const c2 = opcionCombo(["cabify", "metro", "cabify"], distKm, seed, "cabify-metro-cabify");
       if (c2) opciones.push(c2);
     }
-    if (distKm >= 7 && MODOS.cercanias.avail(distKm - 3.5)) {
-      const c = opcionCombo(["cabify", "cercanias"], distKm, seed, "cabify-cercanias");
-      if (c) opciones.push(c);
+    if (distKm >= 12) {
+      const c3 = opcionCombo(["cabify", "cercanias"], distKm, seed, "cabify-cercanias");
+      if (c3) opciones.push(c3);
     }
   }
 
