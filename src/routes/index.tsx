@@ -25,14 +25,14 @@ const PREDICCIONES = [
 // "Cabify City" es el nuevo producto intermodal: desde ahí arranca el flujo.
 const SERVICIOS = [
   { id: "cabify", label: "Cabify", img: "/illustrations/cabify.svg" },
-  { id: "moto", label: "Moto", img: "/illustrations/moto.svg" },
   { id: "city", label: "Cabify City", img: "/illustrations/city.svg", nuevo: true },
+  { id: "moto", label: "Moto", img: "/illustrations/moto.svg" },
   { id: "voltio", label: "Voltio", img: "/illustrations/voltio.svg" },
   { id: "reservas", label: "Reservas", img: "/illustrations/reservas.svg" },
 ];
 
 // Forma cóncava de la barra de navegación (Union, fiel al diseño Cabify).
-const UNION_SVG = `<svg width="100%" viewBox="0 0 390 94" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><g filter="url(#u_dd)"><path d="M195 6C203.575 6 211.166 10.208 215.822 16.671C219.853 22.266 225.419 27.648 232.315 27.648H384C387.314 27.648 390 30.335 390 33.648V82.648C390 83.201 389.552 83.648 389 83.648H1C0.448 83.648 0 83.201 0 82.648V33.648C0 30.335 2.686 27.648 6 27.648H157.685C164.581 27.648 170.147 22.266 174.178 16.671C178.834 10.208 186.425 6 195 6Z" fill="white"/></g><defs><filter id="u_dd" x="-8" y="0" width="406" height="93.648" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="bg"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feOffset dy="2"/><feGaussianBlur stdDeviation="4"/><feColorMatrix type="matrix" values="0 0 0 0 0.196 0 0 0 0 0.196 0 0 0 0 0.322 0 0 0 0.16 0"/><feBlend mode="normal" in2="bg" result="s2"/><feBlend mode="normal" in="SourceGraphic" in2="s2" result="shape"/></filter></defs></svg>`;
+const UNION_SVG = `<svg width="100%" height="100%" viewBox="0 0 390 94" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><g filter="url(#u_dd)"><path d="M195 6C203.575 6 211.166 10.208 215.822 16.671C219.853 22.266 225.419 27.648 232.315 27.648H384C387.314 27.648 390 30.335 390 33.648V94H0V33.648C0 30.335 2.686 27.648 6 27.648H157.685C164.581 27.648 170.147 22.266 174.178 16.671C178.834 10.208 186.425 6 195 6Z" fill="white"/></g><defs><filter id="u_dd" x="-8" y="0" width="406" height="110" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="bg"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feOffset dy="2"/><feGaussianBlur stdDeviation="4"/><feColorMatrix type="matrix" values="0 0 0 0 0.196 0 0 0 0 0.196 0 0 0 0 0.322 0 0 0 0.16 0"/><feBlend mode="normal" in2="bg" result="s2"/><feBlend mode="normal" in="SourceGraphic" in2="s2" result="shape"/></filter></defs></svg>`;
 
 // Icono pestaña "Viajar" (activo, morado) — fiel al DS.
 const IC_VIAJAR = `<svg width="24" height="24" viewBox="48 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M66.168 1C64.862 1 63.751 1.835 63.339 3H61.668C61.116 3 60.668 3.448 60.668 4C60.668 4.552 61.116 5 61.668 5H63.339C63.479 5.398 63.702 5.757 63.985 6.058C62.101 6.382 60.668 8.024 60.668 10V17.081C60.668 18.07 61.263 18.962 62.176 19.341C62.502 19.477 62.833 19.595 63.168 19.695V16C63.168 14.343 64.511 13 66.168 13C67.825 13 69.168 14.343 69.168 16V19.695C69.503 19.595 69.834 19.477 70.16 19.341C71.073 18.962 71.668 18.07 71.668 17.081V10C71.668 8.024 70.235 6.382 68.351 6.058C68.634 5.757 68.857 5.398 68.997 5H70.668C71.22 5 71.668 4.552 71.668 4C71.668 3.448 71.22 3 70.668 3H68.997C68.585 1.835 67.474 1 66.168 1ZM65.168 4C65.168 4.552 65.616 5 66.168 5C66.72 5 67.168 4.552 67.168 4C67.168 3.448 66.72 3 66.168 3C65.616 3 65.168 3.448 65.168 4Z" fill="#7145D6"/><path d="M67.668 16V21C67.668 21.828 66.996 22.5 66.168 22.5C65.34 22.5 64.668 21.828 64.668 21V16C64.668 15.172 65.34 14.5 66.168 14.5C66.996 14.5 67.668 15.172 67.668 16Z" fill="#7145D6"/><path fill-rule="evenodd" clip-rule="evenodd" d="M54.97 3H59.376C59.242 3.306 59.168 3.644 59.168 4C59.168 4.356 59.242 4.694 59.376 5H54.97C54.324 5 53.751 5.413 53.547 6.026L52.555 9H59.259C59.199 9.324 59.168 9.659 59.168 10V17.38C59.168 17.956 59.309 18.51 59.566 19H55.168V20.5C55.168 21.328 54.496 22 53.668 22H50.668C49.84 22 49.168 21.328 49.168 20.5V19H48.668C48.116 19 47.668 18.552 47.668 18V13C47.668 11.243 48.801 9.75 50.376 9.213L51.65 5.393C52.126 3.964 53.463 3 54.97 3ZM52.668 15.5C53.496 15.5 54.168 14.828 54.168 14C54.168 13.172 53.496 12.5 52.668 12.5C51.84 12.5 51.168 13.172 51.168 14C51.168 14.828 51.84 15.5 52.668 15.5Z" fill="#7145D6"/></svg>`;
@@ -66,7 +66,7 @@ function HomePage() {
       </div>
 
       {/* bottom sheet */}
-      <div className="absolute left-0 right-0 bottom-[76px] bg-surface rounded-t-[24px] pt-2 pb-3 flex flex-col gap-3" style={{ boxShadow: "var(--shadow-rised)" }}>
+      <div className="absolute left-0 right-0 bottom-[58px] bg-surface rounded-t-[24px] pt-2 pb-6 flex flex-col gap-3" style={{ boxShadow: "var(--shadow-rised)" }}>
         <div className="mx-auto h-1 w-9 rounded-full" style={{ background: "var(--sheet-handle)" }} />
         <h1 className="px-4 text-[18px] font-bold leading-6">Hola, Iván</h1>
 
@@ -129,30 +129,31 @@ function HomePage() {
         </ul>
       </div>
 
-      {/* bottom nav con muesca cóncava (Union) + medalla central */}
-      <div className="absolute left-0 right-0 bottom-0 h-[84px]">
-        <div className="absolute inset-x-0 bottom-0 h-[78px]" dangerouslySetInnerHTML={{ __html: UNION_SVG }} />
+      {/* bottom nav con muesca (Union) + medalla central */}
+      <div className="absolute left-0 right-0 bottom-0 h-[84px] z-30">
+        {/* forma blanca con bump central; llena hasta abajo para tapar el mapa */}
+        <div className="absolute inset-0" dangerouslySetInnerHTML={{ __html: UNION_SVG }} />
 
-        {/* medalla central elevada */}
+        {/* medalla central elevada (sobre el bump) */}
         <div
-          className="absolute left-1/2 -translate-x-1/2 top-0 w-12 h-12 rounded-full grid place-items-center z-20 border-2 border-white"
+          className="absolute left-1/2 -translate-x-1/2 -top-3 w-12 h-12 rounded-full grid place-items-center border-2 border-white"
           style={{ background: "linear-gradient(135deg, #7145d6, #feb54e)", boxShadow: "var(--shadow-rised)" }}
         >
           <img src="/icons/ic_medal_three_sides_circular_multi.svg" alt="" className="w-7 h-7" style={{ filter: "brightness(0) invert(1)" }} />
         </div>
 
         {/* pestañas */}
-        <div className="absolute inset-x-0 bottom-0 h-[60px] flex items-center justify-between px-2 z-10">
+        <div className="absolute inset-x-0 top-[22px] flex items-start justify-between px-3">
           <NavTab label="Viajar" active svg={IC_VIAJAR} />
-          <div className="flex-1 flex flex-col items-center justify-end h-full pb-1.5">
-            <span className="text-[11px] font-medium text-text-secondary mt-auto">Cabify Club</span>
+          <div className="flex-1 flex justify-center pt-8">
+            <span className="text-[11px] font-medium text-text-secondary">Cabify Club</span>
           </div>
           <NavTab label="Enviar" svg={IC_ENVIAR} />
         </div>
-      </div>
 
-      {/* home indicator */}
-      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 h-1 w-32 rounded-full bg-black/80 z-20" />
+        {/* home indicator */}
+        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 h-1 w-32 rounded-full bg-black/80" />
+      </div>
     </PhoneFrame>
   );
 }
