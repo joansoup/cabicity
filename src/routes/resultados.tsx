@@ -47,8 +47,8 @@ function Resultados() {
   }, [trip?.destino]);
 
   const ordenadas = useMemo(() => ordenarOpciones(opciones, criterio), [opciones, criterio]);
-  const masBarata = useMemo(
-    () => ordenadas.reduce<Opcion | null>((a, b) => (!a || b.precioEur < a.precioEur ? b : a), null),
+  const metroRef = useMemo(
+    () => ordenadas.find((o) => o.id === "simple-metro") ?? null,
     [ordenadas]
   );
 
