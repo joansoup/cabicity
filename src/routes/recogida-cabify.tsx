@@ -128,6 +128,12 @@ function RecogidaCabify() {
     ];
   }, [geo]);
 
+  // Línea morada Cabify desde el coche hasta el punto de recogida.
+  const rutaRecogida: MapaRutaSegmento[] = useMemo(() => {
+    if (!geo || !carPos) return [];
+    return [{ coords: [carPos, geo.origen], color: "#7145d6" }];
+  }, [geo, carPos]);
+
   if (!trip?.seleccionada || !op || !geo || !categoria || !carPos) {
     return (
       <PhoneFrame>
