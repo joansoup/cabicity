@@ -44,12 +44,8 @@ function Resultados() {
 
   const { opciones, distKm } = useMemo(() => {
     if (!trip?.destino) return { opciones: [], distKm: 0 };
-    const coords =
-      trip.destinoLng != null && trip.destinoLat != null
-        ? ([trip.destinoLng, trip.destinoLat] as [number, number])
-        : undefined;
-    return generarOpciones(trip.destino, coords);
-  }, [trip?.destino, trip?.destinoLng, trip?.destinoLat]);
+    return generarOpciones(trip.destino);
+  }, [trip?.destino]);
 
   const ordenadas = useMemo(() => ordenarOpciones(opciones, criterio), [opciones, criterio]);
   const masBarata = useMemo(
@@ -143,6 +139,9 @@ function Resultados() {
                 return v ? <div className="text-[12px] font-medium text-eco-text">{v}</div> : null;
               })()}
 
+              {op.desglose && (
+                <div className="text-[12px] text-text-secondary">{op.desglose}</div>
+              )}
             </button>
           ))}
           {ordenadas.length === 0 && (

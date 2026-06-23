@@ -5,8 +5,6 @@ export interface TripState {
   origen: string;
   destino: string;
   criterio: "equilibrado" | "rapido" | "barato" | "ecologico";
-  destinoLng?: number;
-  destinoLat?: number;
   seleccionada?: Opcion;
   categoriaCabify?: CabifyCategoriaId;
 }
