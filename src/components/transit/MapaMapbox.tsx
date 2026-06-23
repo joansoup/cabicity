@@ -44,6 +44,8 @@ interface Props {
   fitRuta?: boolean;
   className?: string;
   interactive?: boolean;
+  /** Padding (px) que reserva el viewport. Útil cuando un bottom sheet cubre el mapa. */
+  paddingBottom?: number;
 }
 
 function MapaFallback({ className }: { className?: string }) {
@@ -103,6 +105,7 @@ export function MapaMapbox({
   fitRuta = true,
   className,
   interactive = false,
+  paddingBottom = 0,
 }: Props) {
   const token = getMapboxToken();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -142,6 +145,12 @@ export function MapaMapbox({
       });
       mapInstance = map;
       mapRef.current = map;
+      // Reserva espacio en la parte inferior (bottom sheet) para que el centro
+      // visual quede en el área realmente visible del mapa.
+      if (paddingBottom > 0) {
+        try { map.setPadding({ top: 0, right: 0, bottom: paddingBottom, left: 0 }); } catch { /* ignore */ }
+        try { map.jumpTo({ center: centro, zoom }); } catch { /* ignore */ }
+      }
 
       // Interactivo: tras 10s de inactividad vuelve a centrarse en el origen.
       if (interactive) {

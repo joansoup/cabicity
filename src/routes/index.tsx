@@ -59,7 +59,7 @@ function HomePage() {
   return (
     <PhoneFrame>
       <div className="absolute inset-0">
-        <MapaMapbox centro={[-3.6736, 40.4445]} zoom={14} fitRuta={false} interactive ubicacionActual={[-3.6736, 40.4445]} />
+        <MapaMapbox centro={[-3.6736, 40.4445]} zoom={14} fitRuta={false} interactive ubicacionActual={[-3.6736, 40.4445]} paddingBottom={460} />
       </div>
 
       {/* avatar */}
