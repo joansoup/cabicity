@@ -6,6 +6,8 @@ import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
 import { fmtEur, fmtMin, fmtCo2, fmtEurCashback } from "@/lib/transit/format";
 import { ModoIcon, modoColor } from "@/components/transit/ModoIcon";
 import type { Paso, Tramo } from "@/lib/transit/engine";
+import { buildRouteGeo, getMapboxToken } from "@/lib/transit/routeGeo";
+import { MapboxRoute } from "@/components/transit/MapboxRoute";
 
 export const Route = createFileRoute("/navegacion")({
   component: Nav,
@@ -80,8 +82,14 @@ function Nav() {
     }
   };
 
-  if (!trip?.seleccionada || !actual) return <PhoneFrame><div /></PhoneFrame>;
-  const op = trip.seleccionada;
+  const op = trip?.seleccionada;
+  const mbToken = getMapboxToken();
+  const geo = useMemo(
+    () => (op ? buildRouteGeo(op, trip?.destino || op.id) : null),
+    [op, trip?.destino]
+  );
+
+  if (!trip?.seleccionada || !actual || !op || !geo) return <PhoneFrame><div /></PhoneFrame>;
 
   // CO2 ahorrado vs cabify total
   const cabifyTotalCo2 = 0.15 * (op.tramos.reduce((s, t) => s + t.distanciaKm, 0));
@@ -128,15 +136,21 @@ function Nav() {
     );
   }
 
+  const currentPos = geo.stepPositions[idx] ?? geo.destino;
+
   return (
     <PhoneFrame>
       <div className="absolute inset-0 flex flex-col bg-bg">
-        {/* mapa esquemático */}
+        {/* mapa */}
         <div className="relative h-[40%] bg-bg-subdued overflow-hidden">
-          <SchematicMap tramos={op.tramos} progreso={progreso} />
+          {mbToken ? (
+            <MapboxRoute token={mbToken} geo={geo} currentPos={currentPos} />
+          ) : (
+            <SchematicMap tramos={op.tramos} progreso={progreso} />
+          )}
           <button
             onClick={() => navigate({ to: "/viaje" })}
-            className="absolute top-3 left-3 w-10 h-10 rounded-full bg-surface grid place-items-center"
+            className="absolute top-3 left-3 w-10 h-10 rounded-full bg-surface grid place-items-center z-10"
             style={{ boxShadow: "var(--shadow-rised)" }}
           >
             <ArrowLeft size={20} />
@@ -148,7 +162,7 @@ function Nav() {
               localStorage.setItem("ct-voz", nv ? "1" : "0");
               if (!nv && typeof window !== "undefined") window.speechSynthesis?.cancel();
             }}
-            className="absolute top-3 right-3 w-10 h-10 rounded-full bg-surface grid place-items-center"
+            className="absolute top-3 right-3 w-10 h-10 rounded-full bg-surface grid place-items-center z-10"
             style={{ boxShadow: "var(--shadow-rised)" }}
           >
             {voz ? <Volume2 size={20} /> : <VolumeX size={20} className="text-text-secondary" />}
