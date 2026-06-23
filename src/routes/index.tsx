@@ -67,7 +67,7 @@ function HomePage() {
 
 
       {/* bottom sheet */}
-      <div className="absolute left-0 right-0 bottom-[58px] bg-surface rounded-t-[24px] pt-2 pb-6 flex flex-col gap-3" style={{ boxShadow: "var(--shadow-rised)" }}>
+      <div className="absolute left-0 right-0 bottom-[72px] bg-surface rounded-t-[24px] pt-2 pb-6 flex flex-col gap-3" style={{ boxShadow: "var(--shadow-rised)" }}>
         <div className="mx-auto h-1 w-9 rounded-full" style={{ background: "var(--sheet-handle)" }} />
         <h1 className="px-4 text-[18px] font-bold leading-6">Hola, Iván</h1>
 
