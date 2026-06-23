@@ -60,6 +60,11 @@ export function distanciaPara(destino: string): number {
   }
   if (/toledo|segovia|guadalajara|alcal[áa]/.test(d)) return 65 + (hashStr(d) % 30);
   if (/aeropuerto|barajas|t1|t2|t3|t4/.test(d)) return 14;
+  // Lugares cercanos a Chamartín (el origen): trayectos cortos -> aparecen
+  // "a pie" y BiciMAD entre las opciones.
+  if (/bernab[eé]u|nuevos ministerios|plaza castilla|chamart[ií]n|cuzco|prosperidad|concha espina|am[eé]rica|gregorio mara|alonso mart|colombia|pradillo|alfonso xiii/.test(d)) {
+    return Math.round((0.8 + (hashStr(d) % 21) / 10) * 10) / 10; // 0.8 – 2.8 km (andable)
+  }
   // urbano 1.5 – 22 km
   const r = (hashStr(d) % 210) / 10 + 1.5;
   return Math.round(r * 10) / 10;

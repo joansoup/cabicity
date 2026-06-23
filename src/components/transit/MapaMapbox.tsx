@@ -29,6 +29,8 @@ interface Props {
   marcadores?: MapaMarcador[];
   /** Punto que avanza por la ruta (se anima con easeTo al cambiar). */
   marcadorActivo?: LngLat;
+  /** Marcador de "tu ubicación actual" (punto azul con halo). */
+  ubicacionActual?: LngLat;
   /** Si hay ruta, ajusta el encuadre a todos sus puntos al montar. */
   fitRuta?: boolean;
   className?: string;
@@ -87,6 +89,7 @@ export function MapaMapbox({
   ruta,
   marcadores,
   marcadorActivo,
+  ubicacionActual,
   fitRuta = true,
   className,
   interactive = false,
@@ -128,8 +131,32 @@ export function MapaMapbox({
       mapInstance = map;
       mapRef.current = map;
 
+      // Interactivo: tras 10s de inactividad vuelve a centrarse en el origen.
+      if (interactive) {
+        let recenterT: ReturnType<typeof setTimeout> | undefined;
+        map.on("moveend", (e: { originalEvent?: unknown }) => {
+          if (!e.originalEvent) return; // solo si lo movió el usuario
+          if (recenterT) clearTimeout(recenterT);
+          recenterT = setTimeout(() => {
+            try { map.easeTo({ center: centro, zoom, duration: 800 }); } catch { /* ignore */ }
+          }, 10000);
+        });
+      }
+
       map.on("load", () => {
         aplicarEstiloCabify(map);
+        // Marcador de "tu ubicación actual" (punto azul con halo)
+        if (ubicacionActual) {
+          const wrap = document.createElement("div");
+          wrap.style.cssText = "position:relative;width:22px;height:22px;";
+          const halo = document.createElement("div");
+          halo.style.cssText = "position:absolute;inset:-10px;border-radius:999px;background:rgba(39,96,194,0.16);";
+          const dot = document.createElement("div");
+          dot.style.cssText = "position:absolute;inset:0;border-radius:999px;background:#2760c2;border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,0.35);";
+          wrap.appendChild(halo);
+          wrap.appendChild(dot);
+          new mapboxgl.Marker({ element: wrap, anchor: "center" }).setLngLat(ubicacionActual).addTo(map);
+        }
         // Pintar ruta
         if (ruta && ruta.length > 0) {
           ruta.forEach((seg, i) => {
