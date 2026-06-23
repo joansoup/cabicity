@@ -215,7 +215,11 @@ function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
   const precio = round2(m.price(distKm));
   const co2 = round2(m.co2 * distKm);
   const interurbano = distKm > 60;
-  const cashback = round2(capCashback(CASHBACK[tipo] * distKm, interurbano));
+  const esSostenible = SOSTENIBLE[tipo];
+  // Solo modos sostenibles generan cashback.
+  const cashback = esSostenible
+    ? round2(capCashback(CASHBACK[tipo] * distKm, interurbano))
+    : 0;
   let tramos: Tramo[];
   if (tipo === "cabify") {
     tramos = [tramoCabify(distKm, "Cabify directo a destino", "Trayecto en Cabify hasta tu destino")];
@@ -236,7 +240,7 @@ function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
   return {
     id: `simple-${tipo}`, tipo: "simple", nombre: NOMBRES[tipo], modos: [tipo], tramos,
     etaMin: eta, precioEur: precio, co2Kg: co2, cashbackEur: cashback,
-    esSostenible: tipo !== "cabify",
+    esSostenible,
   };
 }
 
