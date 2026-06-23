@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ViajeRouteImport } from './routes/viaje'
 import { Route as ResultadosRouteImport } from './routes/resultados'
+import { Route as RecogidaCabifyRouteImport } from './routes/recogida-cabify'
 import { Route as NavegacionRouteImport } from './routes/navegacion'
 import { Route as CategoriaCabifyRouteImport } from './routes/categoria-cabify'
 import { Route as BuscarRouteImport } from './routes/buscar'
@@ -24,6 +25,11 @@ const ViajeRoute = ViajeRouteImport.update({
 const ResultadosRoute = ResultadosRouteImport.update({
   id: '/resultados',
   path: '/resultados',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecogidaCabifyRoute = RecogidaCabifyRouteImport.update({
+  id: '/recogida-cabify',
+  path: '/recogida-cabify',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NavegacionRoute = NavegacionRouteImport.update({
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/buscar': typeof BuscarRoute
   '/categoria-cabify': typeof CategoriaCabifyRoute
   '/navegacion': typeof NavegacionRoute
+  '/recogida-cabify': typeof RecogidaCabifyRoute
   '/resultados': typeof ResultadosRoute
   '/viaje': typeof ViajeRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/buscar': typeof BuscarRoute
   '/categoria-cabify': typeof CategoriaCabifyRoute
   '/navegacion': typeof NavegacionRoute
+  '/recogida-cabify': typeof RecogidaCabifyRoute
   '/resultados': typeof ResultadosRoute
   '/viaje': typeof ViajeRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/buscar': typeof BuscarRoute
   '/categoria-cabify': typeof CategoriaCabifyRoute
   '/navegacion': typeof NavegacionRoute
+  '/recogida-cabify': typeof RecogidaCabifyRoute
   '/resultados': typeof ResultadosRoute
   '/viaje': typeof ViajeRoute
 }
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/categoria-cabify'
     | '/navegacion'
+    | '/recogida-cabify'
     | '/resultados'
     | '/viaje'
   fileRoutesByTo: FileRoutesByTo
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/categoria-cabify'
     | '/navegacion'
+    | '/recogida-cabify'
     | '/resultados'
     | '/viaje'
   id:
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/categoria-cabify'
     | '/navegacion'
+    | '/recogida-cabify'
     | '/resultados'
     | '/viaje'
   fileRoutesById: FileRoutesById
@@ -104,6 +116,7 @@ export interface RootRouteChildren {
   BuscarRoute: typeof BuscarRoute
   CategoriaCabifyRoute: typeof CategoriaCabifyRoute
   NavegacionRoute: typeof NavegacionRoute
+  RecogidaCabifyRoute: typeof RecogidaCabifyRoute
   ResultadosRoute: typeof ResultadosRoute
   ViajeRoute: typeof ViajeRoute
 }
@@ -122,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/resultados'
       fullPath: '/resultados'
       preLoaderRoute: typeof ResultadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recogida-cabify': {
+      id: '/recogida-cabify'
+      path: '/recogida-cabify'
+      fullPath: '/recogida-cabify'
+      preLoaderRoute: typeof RecogidaCabifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/navegacion': {
@@ -160,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuscarRoute: BuscarRoute,
   CategoriaCabifyRoute: CategoriaCabifyRoute,
   NavegacionRoute: NavegacionRoute,
+  RecogidaCabifyRoute: RecogidaCabifyRoute,
   ResultadosRoute: ResultadosRoute,
   ViajeRoute: ViajeRoute,
 }
