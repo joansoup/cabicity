@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Volume2, VolumeX, ChevronRight, Sparkles, Radar } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX, ChevronRight, Sparkles } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
 import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
@@ -231,10 +231,7 @@ function Nav() {
                   <ModoIcon tipo={p.tramo.tipo} size={16} />
                 </div>
                 <div className="flex-1 text-[14px] text-text-secondary truncate">{p.paso.instruccion}</div>
-                <div className="flex items-center gap-1 text-text">
-                  <Radar size={16} className="text-eco-text animate-pulse" aria-hidden />
-                  <span className="text-[15px] font-bold">{fmtMin(p.paso.duracionMin)}</span>
-                </div>
+                <span className="text-[15px] font-bold text-text">{fmtMin(p.paso.duracionMin)}</span>
               </li>
             ))}
           </ul>
