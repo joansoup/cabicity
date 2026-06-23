@@ -76,6 +76,13 @@ const MODOS = {
   bus:       { speed: 14,  price: () => 1.5,                     co2: 0.08,  avail: (d: number) => d < 30, color: "#bf2721", icono: "lucide:Bus" },
 } as const;
 
+// Modos sostenibles: a pie, bici pública y transporte público/ferroviario.
+// Cabify (coche con conductor) NO es sostenible y nunca genera cashback.
+const SOSTENIBLE: Record<ModoTipo, boolean> = {
+  andando: true, bicimad: true, metro: true, cercanias: true, ave: true, bus: true, cabify: false,
+};
+
+// Cashback en € por km del tramo sostenible. Los modos no sostenibles deben quedarse en 0.
 const CASHBACK: Record<ModoTipo, number> = {
   andando: 0.25, bicimad: 0.15, metro: 0.1, cercanias: 0.1, bus: 0.1, ave: 0.05, cabify: 0,
 };
