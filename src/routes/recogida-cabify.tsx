@@ -49,7 +49,7 @@ function RecogidaCabify() {
 
   const op = trip?.seleccionada;
 
-  const categoria: CabifyCategoriaConPrecio | undefined = useMemo(() => {
+  const categoria: Categoria | undefined = useMemo(() => {
     if (!op) return undefined;
     const cats = categoriasParaOpcion(op);
     return cats.find((c) => c.id === trip?.categoriaCabify) ?? cats[0];
