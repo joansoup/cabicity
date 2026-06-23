@@ -76,31 +76,39 @@ function HomePage() {
       </div>
 
       {/* avatar */}
-      <img src="/illustrations/avatar-ivan.svg" alt="Iván" className="absolute top-11 left-4 w-12 h-12 rounded-full object-cover z-10" style={{ boxShadow: "var(--shadow-rised)" }} />
+      <img src="/illustrations/avatar-daniel.svg" alt="Daniel Sáez" className="absolute top-11 left-4 w-12 h-12 rounded-full object-cover z-10" style={{ boxShadow: "var(--shadow-rised)" }} />
 
 
       {/* bottom sheet (su borde inferior conecta con la barra de navegación) */}
       <div ref={sheetRef} className="absolute left-0 right-0 bottom-[72px] bg-surface rounded-t-[24px] pt-2 pb-7 flex flex-col gap-3" style={{ boxShadow: "var(--shadow-rised)" }}>
         <div className="mx-auto h-1 w-9 rounded-full" style={{ background: "var(--sheet-handle)" }} />
-        <h1 className="px-4 text-[18px] font-bold leading-6">Hola, Iván</h1>
+        <div className="px-4">
+          <p className="text-[15px] font-medium text-text-secondary leading-5">Hola, Daniel Sáez</p>
+          <h1 className="text-[22px] font-bold text-text leading-7">Viaja a tu manera</h1>
+        </div>
 
         {/* carrusel de servicios */}
-        <div className="flex gap-2 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {SERVICIOS.map((s) => {
             const active = servicio === s.id;
             return (
               <button
                 key={s.id}
                 onClick={() => elegirServicio(s.id)}
-                className="relative shrink-0 w-[92px] h-[92px] rounded-[16px] flex flex-col items-center justify-end pb-2 transition-colors"
+                className="relative shrink-0 w-[92px] h-[92px] rounded-[8px] flex flex-col items-center justify-end pb-2 transition-colors"
                 style={{
-                  background: active ? "var(--surface-primary)" : "var(--field-bg)",
-                  border: active ? "2px solid var(--brand)" : "2px solid transparent",
+                  background: active ? "#F5F1FC" : "var(--field-bg)",
+                  border: active ? "2px solid #7145D6" : "1px solid transparent",
                 }}
               >
                 {s.nuevo && (
-                  <span className="absolute top-1.5 right-1.5 text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full text-white" style={{ background: "var(--brand)" }}>
-                    Nuevo
+                  // Badge "NUEVO" del DS: centrado en el borde superior, morado
+                  // oscuro #4A2B8D, radio 4, 11px bold blanco.
+                  <span
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 text-[11px] font-bold leading-4 px-2 rounded-[4px] text-white"
+                    style={{ background: "#4A2B8D" }}
+                  >
+                    NUEVO
                   </span>
                 )}
                 <img src={s.img} alt={s.label} className="w-[74px] h-[46px] object-contain" />

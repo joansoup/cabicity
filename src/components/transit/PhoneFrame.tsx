@@ -1,5 +1,36 @@
 import type { ReactNode } from "react";
-import { Signal, Wifi, BatteryFull } from "lucide-react";
+
+// Iconos de barra de estado al estilo iOS (cobertura, wifi y batería). Usan
+// currentColor para heredar el color del texto (oscuro sobre fondo claro,
+// blanco sobre fondo oscuro).
+function IosCellular() {
+  return (
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true">
+      <rect x="0" y="8" width="3" height="4" rx="1" />
+      <rect x="5" y="6" width="3" height="6" rx="1" />
+      <rect x="10" y="3" width="3" height="9" rx="1" />
+      <rect x="15" y="0" width="3" height="12" rx="1" />
+    </svg>
+  );
+}
+function IosWifi() {
+  return (
+    <svg width="17" height="13" viewBox="0 0 17 13" fill="none" aria-hidden="true">
+      <path d="M1 4.4C5.2 0.7 11.8 0.7 16 4.4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      <path d="M3.7 7.1C6.4 4.8 10.6 4.8 13.3 7.1" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      <circle cx="8.5" cy="10.4" r="1.6" fill="currentColor" />
+    </svg>
+  );
+}
+function IosBattery() {
+  return (
+    <svg width="27" height="13" viewBox="0 0 27 13" fill="none" aria-hidden="true">
+      <rect x="0.6" y="0.6" width="22.8" height="11.8" rx="3.2" stroke="currentColor" strokeOpacity="0.4" strokeWidth="1" />
+      <rect x="2" y="2" width="17" height="9" rx="1.8" fill="currentColor" />
+      <path d="M25 4.6c1 .3 1 3.5 0 3.8V4.6z" fill="currentColor" fillOpacity="0.5" />
+    </svg>
+  );
+}
 
 interface Props {
   children: ReactNode;
@@ -18,11 +49,11 @@ export function PhoneFrame({ children, statusBarDark = true, transparentStatusBa
       } ${statusBarDark ? "text-text" : "text-white"}`}
       style={{ height: 32 }}
     >
-      <span>9:41</span>
+      <span className="text-[15px] font-semibold tracking-tight">9:41</span>
       <div className="flex items-center gap-1.5">
-        <Signal size={14} />
-        <Wifi size={14} />
-        <BatteryFull size={18} />
+        <IosCellular />
+        <IosWifi />
+        <IosBattery />
       </div>
     </div>
   );
