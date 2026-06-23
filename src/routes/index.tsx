@@ -4,6 +4,8 @@ import { Search, Clock, Home } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { setTrip } from "@/lib/transit/store";
 import { MapaMapbox } from "@/components/transit/MapaMapbox";
+import ivanAvatar from "@/assets/ivan-avatar.png.asset.json";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
