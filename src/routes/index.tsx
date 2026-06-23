@@ -45,7 +45,7 @@ function HomePage() {
   const [servicio, setServicio] = useState("city");
 
   const goSearch = (destino?: string) => {
-    setTrip({ origen: "Tu ubicación actual", destino: destino ?? "", criterio: "equilibrado" });
+    setTrip({ origen: "Calle de Pradillo, 42, Chamartín, 28002 Madrid", destino: destino ?? "", criterio: "equilibrado" });
     navigate({ to: "/buscar" });
   };
 
@@ -57,7 +57,7 @@ function HomePage() {
   return (
     <PhoneFrame>
       <div className="absolute inset-0">
-        <MapaMapbox centro={[-3.7038, 40.4168]} zoom={12.5} fitRuta={false} />
+        <MapaMapbox centro={[-3.6772, 40.449]} zoom={13.2} fitRuta={false} />
       </div>
 
       {/* avatar */}

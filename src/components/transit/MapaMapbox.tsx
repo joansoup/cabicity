@@ -54,6 +54,33 @@ function MapaFallback({ className }: { className?: string }) {
   );
 }
 
+// Recolorea el estilo base de Mapbox hacia la paleta del mapa de Cabify.
+// (El estilo original es un JSON de Google Maps, que Mapbox no acepta; aquí
+// trasladamos su paleta a las capas del estilo light de Mapbox.)
+function aplicarEstiloCabify(map: { getStyle: () => { layers?: { id: string; type: string }[] }; setPaintProperty: (id: string, prop: string, val: unknown) => void }) {
+  let layers: { id: string; type: string }[] = [];
+  try { layers = map.getStyle()?.layers || []; } catch { return; }
+  for (const l of layers) {
+    const id = l.id;
+    try {
+      if (l.type === "background") map.setPaintProperty(id, "background-color", "#f3f3f7");
+      else if (l.type === "fill") {
+        if (/water/i.test(id)) map.setPaintProperty(id, "fill-color", "#b0e5fe");
+        else if (/(park|green|grass|wood|landcover|pitch|golf|cemetery|scrub)/i.test(id)) map.setPaintProperty(id, "fill-color", "#c4eba8");
+        else if (/building/i.test(id)) map.setPaintProperty(id, "fill-color", "#e9eaf1");
+        else if (/(land|earth)/i.test(id)) map.setPaintProperty(id, "fill-color", "#f3f3f7");
+      } else if (l.type === "line") {
+        if (/water/i.test(id)) map.setPaintProperty(id, "line-color", "#b0e5fe");
+        else if (/(motorway|trunk|highway)/i.test(id)) map.setPaintProperty(id, "line-color", "#c0c2d8");
+        else if (/(road|street|bridge|tunnel|transit)/i.test(id)) map.setPaintProperty(id, "line-color", "#ffffff");
+      } else if (l.type === "symbol") {
+        try { map.setPaintProperty(id, "text-color", "#4b4c6a"); } catch { /* sin texto */ }
+        try { map.setPaintProperty(id, "text-halo-color", "#ffffff"); } catch { /* sin halo */ }
+      }
+    } catch { /* la capa no soporta esa propiedad */ }
+  }
+}
+
 export function MapaMapbox({
   centro,
   zoom = 12,
@@ -102,6 +129,7 @@ export function MapaMapbox({
       mapRef.current = map;
 
       map.on("load", () => {
+        aplicarEstiloCabify(map);
         // Pintar ruta
         if (ruta && ruta.length > 0) {
           ruta.forEach((seg, i) => {

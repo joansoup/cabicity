@@ -35,7 +35,7 @@ export interface Opcion {
   etaMin: number;
   precioEur: number; // 0 = Gratis
   co2Kg: number;
-  cashbackEur: number;
+  puntos: number; // puntos Cabify Club (más por rutas sostenibles)
   desglose?: string;
   esSostenible: boolean;
 }
@@ -109,9 +109,10 @@ const SOSTENIBLE: Record<ModoTipo, boolean> = {
   andando: true, bicimad: true, metro: true, cercanias: true, ave: true, bus: true, cabify: false,
 };
 
-// Cashback en € por km del tramo sostenible. Los modos no sostenibles deben quedarse en 0.
-const CASHBACK: Record<ModoTipo, number> = {
-  andando: 0.25, bicimad: 0.15, metro: 0.1, cercanias: 0.1, bus: 0.1, ave: 0.05, cabify: 0,
+// Puntos Cabify Club por km de tramo sostenible: cuanto más sostenible el modo,
+// más puntos. Cabify (coche con conductor) no genera puntos.
+const PUNTOS_POR_KM: Record<ModoTipo, number> = {
+  andando: 12, bicimad: 9, metro: 6, cercanias: 6, bus: 5, ave: 4, cabify: 0,
 };
 
 const NOMBRES: Record<ModoTipo, string> = {
@@ -137,8 +138,8 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-function capCashback(c: number, interurbano: boolean): number {
-  return Math.min(c, interurbano ? 6 : 3);
+function capPuntos(p: number, interurbano: boolean): number {
+  return Math.min(Math.round(p), interurbano ? 600 : 250);
 }
 
 // --- generación de tramos ---------------------------------------------------
@@ -243,9 +244,9 @@ function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
   const co2 = round2(m.co2 * distKm);
   const interurbano = distKm > 60;
   const esSostenible = SOSTENIBLE[tipo];
-  // Solo modos sostenibles generan cashback.
-  const cashback = esSostenible
-    ? round2(capCashback(CASHBACK[tipo] * distKm, interurbano))
+  // Solo los modos sostenibles generan puntos Cabify Club.
+  const puntos = esSostenible
+    ? capPuntos(PUNTOS_POR_KM[tipo] * distKm, interurbano)
     : 0;
   let tramos: Tramo[];
   if (tipo === "cabify") {
@@ -266,7 +267,7 @@ function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
   const eta = tramos.reduce((s, t) => s + t.duracionMin, 0);
   return {
     id: `simple-${tipo}`, tipo: "simple", nombre: NOMBRES[tipo], modos: [tipo], tramos,
-    etaMin: eta, precioEur: precio, co2Kg: co2, cashbackEur: cashback,
+    etaMin: eta, precioEur: precio, co2Kg: co2, puntos,
     esSostenible,
   };
 }
@@ -289,7 +290,7 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
   const tramos: Tramo[] = [];
   let cabifyPrecio = 0, cabifyCo2 = 0;
   let publicoPrecio = 0, publicoCo2 = 0;
-  let cashback = 0;
+  let puntos = 0;
 
   modos.forEach((m, i) => {
     if (m === "cabify") {
@@ -309,8 +310,8 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
       tramos.push(t);
       publicoPrecio += MODOS[m].price(principalKm);
       publicoCo2 += MODOS[m].co2 * principalKm;
-      // Solo los tramos sostenibles aportan cashback.
-      if (SOSTENIBLE[m]) cashback += CASHBACK[m] * principalKm;
+      // Solo los tramos sostenibles aportan puntos Cabify Club.
+      if (SOSTENIBLE[m]) puntos += PUNTOS_POR_KM[m] * principalKm;
     }
   });
 
@@ -319,7 +320,7 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
   const co2 = round2(cabifyCo2 + publicoCo2);
   // Una ruta es sostenible si al menos un tramo lo es; si no, no hay cashback.
   const esSostenible = modos.some((m) => SOSTENIBLE[m]);
-  cashback = esSostenible ? round2(capCashback(cashback, interurbano)) : 0;
+  puntos = esSostenible ? capPuntos(puntos, interurbano) : 0;
   const eta = tramos.reduce((s, t) => s + t.duracionMin, 0) + transbordos * 8;
 
   // insertar tramos de transbordo a pie ligeros (representativos)
@@ -335,7 +336,7 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
 
   return {
     id: `combo-${idSuffix}`, tipo: "combo", nombre, modos, tramos,
-    etaMin: eta, precioEur: precio, co2Kg: co2, cashbackEur: cashback,
+    etaMin: eta, precioEur: precio, co2Kg: co2, puntos,
     desglose, esSostenible,
   };
 }

@@ -8,6 +8,8 @@ export const Route = createFileRoute("/buscar")({
   component: BuscarPage,
 });
 
+const ORIGEN_DEFAULT = "Calle de Pradillo, 42, Chamartín, 28002 Madrid";
+
 const RECIENTES = [
   { tipo: "casa", titulo: "Casa", sub: "Calle de las Flores, 8, Madrid" },
   { tipo: "reciente", titulo: "El Corte Inglés", sub: "Calle Princesa, 64" },
@@ -15,18 +17,38 @@ const RECIENTES = [
   { tipo: "reciente", titulo: "AVE Madrid - Sevilla", sub: "Estación Madrid Atocha" },
 ];
 
+// Lugares para el autocompletado del destino (se filtran según escribes).
+const PLACES = [
+  ...RECIENTES,
+  { tipo: "reciente", titulo: "Puerta del Sol", sub: "Puerta del Sol, Madrid" },
+  { tipo: "reciente", titulo: "Estadio Santiago Bernabéu", sub: "Av. de Concha Espina, 1" },
+  { tipo: "reciente", titulo: "Estación de Atocha", sub: "Atocha, Madrid" },
+  { tipo: "reciente", titulo: "Estación de Chamartín", sub: "Chamartín, Madrid" },
+  { tipo: "reciente", titulo: "Gran Vía", sub: "Gran Vía, Madrid" },
+  { tipo: "reciente", titulo: "Parque del Retiro", sub: "Plaza de la Independencia, Madrid" },
+  { tipo: "reciente", titulo: "IFEMA", sub: "Av. del Partenón, 5, Madrid" },
+  { tipo: "reciente", titulo: "Nuevos Ministerios", sub: "Paseo de la Castellana, Madrid" },
+  { tipo: "reciente", titulo: "AVE Madrid - Barcelona", sub: "Barcelona Sants" },
+  { tipo: "reciente", titulo: "Toledo", sub: "Toledo centro" },
+];
+
 function BuscarPage() {
   const navigate = useNavigate();
   const [origen, setOrigen] = useState("");
   const [destino, setDestino] = useState("");
 
+  const q = destino.trim().toLowerCase();
+  const sugerencias = q
+    ? PLACES.filter((p) => `${p.titulo} ${p.sub}`.toLowerCase().includes(q)).slice(0, 6)
+    : RECIENTES;
+
   useEffect(() => {
     const t = getTrip();
     if (t) {
-      setOrigen(t.origen || "Tu ubicación actual");
+      setOrigen(t.origen || ORIGEN_DEFAULT);
       setDestino(t.destino || "");
     } else {
-      setOrigen("Tu ubicación actual");
+      setOrigen(ORIGEN_DEFAULT);
     }
   }, []);
 
@@ -68,10 +90,10 @@ function BuscarPage() {
         </div>
 
         <ul className="flex-1 overflow-y-auto p-2">
-          {RECIENTES.map((p, i) => (
+          {sugerencias.map((p, i) => (
             <li key={i}>
               <button
-                onClick={() => { setDestino(p.sub); }}
+                onClick={() => { setDestino(p.titulo); }}
                 className="w-full p-3 rounded-[8px] flex items-center gap-4 text-left hover:bg-field"
               >
                 <span className="w-9 h-9 rounded-[8px] grid place-items-center" style={{

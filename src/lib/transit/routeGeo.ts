@@ -3,7 +3,8 @@ import type { Opcion, Tramo } from "./engine";
 
 export type LngLat = [number, number];
 
-const SOL: LngLat = [-3.7038, 40.4168];
+// Origen por defecto: Calle de Pradillo, 42 (Chamartín), la "ubicación actual" fake.
+const SOL: LngLat = [-3.6772, 40.449];
 
 function hashStr(s: string): number {
   let h = 2166136261 >>> 0;

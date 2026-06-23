@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Clock, Leaf } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, type TripState } from "@/lib/transit/store";
-import { fmtEur, fmtMin, fmtCo2, fmtEurCashback } from "@/lib/transit/format";
+import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
 import { ModoIcon } from "@/components/transit/ModoIcon";
 
 export const Route = createFileRoute("/viaje")({
@@ -59,9 +59,10 @@ function Viaje() {
               </div>
             )}
 
-            {op.cashbackEur > 0 && (
-              <div className="bg-cashback-bg text-cashback-text rounded-[12px] px-3 py-2.5 text-[14px] font-bold">
-                Ganarás +{fmtEurCashback(op.cashbackEur)} en saldo Cabify
+            {op.puntos > 0 && (
+              <div className="bg-cashback-bg text-cashback-text rounded-[12px] px-3 py-2.5 text-[14px] font-bold flex items-center gap-2">
+                <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-5 h-5" />
+                Ganarás +{op.puntos} puntos Cabify Club
               </div>
             )}
           </div>

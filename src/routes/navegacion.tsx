@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Volume2, VolumeX, ChevronRight, Sparkles } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
-import { fmtEur, fmtMin, fmtCo2, fmtEurCashback } from "@/lib/transit/format";
+import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
 import { ModoIcon } from "@/components/transit/ModoIcon";
 import type { Paso, Tramo } from "@/lib/transit/engine";
 import { buildRouteGeo } from "@/lib/transit/routeGeo";
@@ -94,6 +94,7 @@ function Nav() {
       geo
         ? geo.segments.map((s) => ({
             coords: s.coords,
+            color: s.color,
             dashed: s.tipo === "andando",
           }))
         : [],
@@ -130,11 +131,13 @@ function Nav() {
           <h1 className="text-[24px] font-bold text-center">Has llegado a tu destino</h1>
           <p className="text-center text-text-secondary text-[15px]">{trip.destino}</p>
 
-          {op.cashbackEur > 0 && (
+          {op.puntos > 0 && (
             <div className="bg-cashback-bg text-cashback-text rounded-[24px] p-5 flex flex-col items-center gap-1 mt-2">
-              <div className="text-[13px] font-bold uppercase tracking-wide">Cashback Cabify</div>
-              <div className="text-[40px] font-bold leading-none">+{fmtEurCashback(op.cashbackEur)}</div>
-              <div className="text-[13px]">en saldo para tu próximo viaje</div>
+              <div className="text-[13px] font-bold uppercase tracking-wide flex items-center gap-1.5">
+                <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-4 h-4" /> Cabify Club
+              </div>
+              <div className="text-[40px] font-bold leading-none">+{op.puntos}</div>
+              <div className="text-[13px]">puntos para canjear en la app</div>
             </div>
           )}
 

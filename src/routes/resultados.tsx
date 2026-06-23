@@ -4,7 +4,7 @@ import { ArrowLeft, Clock, Leaf, Plus } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, setTrip } from "@/lib/transit/store";
 import { generarOpciones, ordenarOpciones, type Criterio, type Opcion } from "@/lib/transit/engine";
-import { fmtEur, fmtMin, fmtCo2, fmtEurCashback } from "@/lib/transit/format";
+import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
 import { ModoIcon } from "@/components/transit/ModoIcon";
 
 export const Route = createFileRoute("/resultados")({
@@ -17,6 +17,19 @@ const CHIPS: { id: Criterio; label: string }[] = [
   { id: "barato", label: "Barato" },
   { id: "ecologico", label: "Ecológico" },
 ];
+
+// Copy de venta: compara cada opción con la más barata para destacar el valor.
+function fraseVenta(op: Opcion, ref: Opcion | null): string | null {
+  if (!ref || op.id === ref.id) return null;
+  const extra = op.precioEur - ref.precioEur;
+  const ahorro = Math.round(ref.etaMin - op.etaMin);
+  if (extra <= 0.01 || ahorro <= 0) return null;
+  const e = `${extra.toFixed(2).replace(".", ",")} €`;
+  const refAndando = ref.modos.length === 1 && ref.modos[0] === "andando";
+  return refAndando
+    ? `Pagando ${e} más te ahorras caminar ${ahorro} min`
+    : `Con ${e} adicionales recortas ${ahorro} min de trayecto`;
+}
 
 function Resultados() {
   const navigate = useNavigate();
@@ -35,6 +48,10 @@ function Resultados() {
   }, [trip?.destino]);
 
   const ordenadas = useMemo(() => ordenarOpciones(opciones, criterio), [opciones, criterio]);
+  const masBarata = useMemo(
+    () => ordenadas.reduce<Opcion | null>((a, b) => (!a || b.precioEur < a.precioEur ? b : a), null),
+    [ordenadas]
+  );
 
   const elegir = (op: Opcion) => {
     setTrip({ seleccionada: op, criterio });
@@ -110,11 +127,17 @@ function Resultados() {
                 <span className="text-text-secondary">{fmtCo2(op.co2Kg)}</span>
               </div>
 
-              {op.cashbackEur > 0 && (
-                <div className="self-start bg-cashback-bg text-cashback-text rounded-full px-3 py-1 text-[12px] font-bold">
-                  +{fmtEurCashback(op.cashbackEur)} para tu próximo Cabify
+              {op.puntos > 0 && (
+                <div className="self-start bg-cashback-bg text-cashback-text rounded-full pl-1.5 pr-3 py-1 text-[12px] font-bold flex items-center gap-1.5">
+                  <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-4 h-4" />
+                  +{op.puntos} puntos Club
                 </div>
               )}
+
+              {(() => {
+                const v = fraseVenta(op, masBarata);
+                return v ? <div className="text-[12px] font-medium text-eco-text">{v}</div> : null;
+              })()}
 
               {op.desglose && (
                 <div className="text-[12px] text-text-secondary">{op.desglose}</div>

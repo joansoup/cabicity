@@ -7,6 +7,10 @@ export function fmtEurCashback(v: number): string {
   return `${v.toFixed(2).replace(".", ",")} €`;
 }
 
+export function fmtPuntos(p: number): string {
+  return `${Math.round(p).toLocaleString("es-ES")} pts`;
+}
+
 export function fmtMin(m: number): string {
   if (m < 60) return `${Math.round(m)} min`;
   const h = Math.floor(m / 60);
