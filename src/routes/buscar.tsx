@@ -131,7 +131,7 @@ function BuscarPage() {
           <button
             disabled={!origen.trim() || !destino.trim()}
             onClick={submit}
-            className="w-full h-12 rounded-[16px] bg-brand text-white font-bold text-[16px] disabled:opacity-40"
+            className="w-full h-12 rounded-[8px] bg-brand text-white font-bold text-[16px] disabled:opacity-40"
           >
             Ver opciones
           </button>

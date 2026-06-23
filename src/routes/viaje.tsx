@@ -92,7 +92,7 @@ function Viaje() {
         <div className="p-4 bg-bg border-t border-border">
           <button
             onClick={() => navigate({ to: op.modos.includes("cabify") ? "/categoria-cabify" : "/navegacion" })}
-            className="w-full h-12 rounded-[16px] bg-brand text-white font-bold text-[16px]"
+            className="w-full h-12 rounded-[8px] bg-brand text-white font-bold text-[16px]"
           >
             Comenzar viaje
           </button>
