@@ -216,7 +216,11 @@ export function MapaMapbox({
   return (
     <div
       ref={containerRef}
-      className={`absolute inset-0 ${className ?? ""}`}
+      className={className}
+      // Inline style: gana en especificidad/orden a `.mapboxgl-map { position: relative }`
+      // de mapbox-gl.css, que si no colapsa la altura del contenedor (inset-0 deja de
+      // aplicar al volverse relative) y el mapa se queda en blanco.
+      style={{ position: "absolute", inset: 0 }}
     />
   );
 }
