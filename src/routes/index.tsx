@@ -57,7 +57,7 @@ function HomePage() {
   };
 
   return (
-    <PhoneFrame>
+    <PhoneFrame transparentStatusBar>
       <div className="absolute inset-0">
         <MapaMapbox centro={[-3.6708, 40.449]} zoom={14} fitRuta={false} interactive ubicacionActual={[-3.6708, 40.449]} paddingBottom={460} />
       </div>
