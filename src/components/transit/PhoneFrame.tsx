@@ -28,9 +28,9 @@ export function PhoneFrame({ children, statusBarDark = true, transparentStatusBa
   );
 
   return (
-    <div className="min-h-screen w-full flex items-stretch sm:items-center justify-center bg-bg-subdued">
+    <div className="min-h-screen w-full flex items-stretch sm:items-center justify-center bg-bg-subdued sm:p-4">
       <div
-        className="relative w-full sm:w-[390px] sm:h-[844px] bg-bg overflow-hidden sm:rounded-[40px] sm:shadow-over flex flex-col"
+        className="relative w-full sm:w-[390px] bg-bg overflow-hidden sm:rounded-[40px] sm:shadow-over flex flex-col sm:h-[min(844px,calc(100vh-2rem))]"
         style={{ maxWidth: 390 }}
       >
         {!transparentStatusBar && statusBar}
