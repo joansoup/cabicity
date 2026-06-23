@@ -243,6 +243,22 @@ export function MapaMapbox({
             .setLngLat(marcadorActivo)
             .addTo(map);
         }
+
+        // Vehículo (SVG cenital) — se anima en efecto dedicado al cambiar pos
+        if (vehiculo) {
+          const wrap = document.createElement("div");
+          const w = vehiculo.tamano ?? 44;
+          wrap.style.cssText = `width:${w}px;height:${w}px;display:grid;place-items:center;`;
+          const img = document.createElement("img");
+          img.src = vehiculo.svgUrl;
+          img.alt = "";
+          img.style.cssText = `width:100%;height:auto;transform:rotate(${vehiculo.rotacionDeg ?? 0}deg);transition:transform 600ms ease;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.25));`;
+          wrap.appendChild(img);
+          vehiculoImgRef.current = img;
+          vehiculoMarkerRef.current = new mapboxgl.Marker({ element: wrap, anchor: "center" })
+            .setLngLat(vehiculo.pos)
+            .addTo(map);
+        }
       });
     })();
 
