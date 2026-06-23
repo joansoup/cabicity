@@ -63,7 +63,7 @@ function HomePage() {
       </div>
 
       {/* avatar */}
-      <img src={ivanAvatar.url} alt="Iván" className="absolute top-3 right-4 w-12 h-12 rounded-full object-cover" style={{ boxShadow: "var(--shadow-rised)" }} />
+      <img src={ivanAvatar.url} alt="Iván" className="absolute top-3 left-4 w-12 h-12 rounded-full object-cover" style={{ boxShadow: "var(--shadow-rised)" }} />
 
 
       {/* bottom sheet */}
