@@ -3,13 +3,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Phone, MessageSquare, Shield } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, type TripState } from "@/lib/transit/store";
-import {
-  categoriasParaOpcion,
-  type CabifyCategoriaConPrecio,
-} from "@/lib/transit/engine";
+import { categoriasParaOpcion } from "@/lib/transit/engine";
 import { buildRouteGeo, type LngLat } from "@/lib/transit/routeGeo";
 import { MapaMapbox, type MapaMarcador } from "@/components/transit/MapaMapbox";
 import { fmtEur } from "@/lib/transit/format";
+
+type Categoria = ReturnType<typeof categoriasParaOpcion>[number];
 
 export const Route = createFileRoute("/recogida-cabify")({
   component: RecogidaCabify,
