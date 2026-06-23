@@ -117,7 +117,15 @@ export function buildRouteGeo(op: Opcion, destinoTexto: string): RouteGeo {
   };
 }
 
+// Token PÚBLICO (pk) de Mapbox. Se prefiere la variable de entorno si Lovable la
+// inyecta en el cliente; si no, este fallback hace que el mapa funcione igualmente
+// en el preview de Lovable. Es un token público (va de por sí en el bundle del
+// cliente); el secreto (sk) NUNCA debe ir aquí.
+const FALLBACK_MAPBOX_PK =
+  "pk.eyJ1Ijoiam9hbnNvdXAiLCJhIjoiY21xcWh5MmVkMDMweTJxcXJpc3l6bnQ1ayJ9.h607bIuTu3CC6lfEkpv1-w";
+
 export function getMapboxToken(): string | undefined {
-  const t = (import.meta.env as Record<string, string | undefined>).VITE_MAPBOX_TOKEN;
-  return t && t.trim() ? t : undefined;
+  const env = (import.meta.env as Record<string, string | undefined>) || {};
+  const t = env.VITE_MAPBOX_TOKEN;
+  return t && t.trim() ? t.trim() : FALLBACK_MAPBOX_PK;
 }
