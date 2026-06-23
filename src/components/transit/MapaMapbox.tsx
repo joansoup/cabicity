@@ -99,6 +99,7 @@ export function MapaMapbox({
   marcadores,
   marcadorActivo,
   ubicacionActual,
+  vehiculo,
   fitRuta = true,
   className,
   interactive = false,
@@ -108,6 +109,8 @@ export function MapaMapbox({
   // Referencias mutables sin tipar mapbox a nivel de módulo.
   const mapRef = useRef<unknown>(null);
   const movingMarkerRef = useRef<unknown>(null);
+  const vehiculoMarkerRef = useRef<unknown>(null);
+  const vehiculoImgRef = useRef<HTMLImageElement | null>(null);
 
   // Init mapa (cliente only, import dinámico)
   useEffect(() => {
