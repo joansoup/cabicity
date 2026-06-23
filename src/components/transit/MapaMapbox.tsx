@@ -114,6 +114,8 @@ export function MapaMapbox({
   const containerRef = useRef<HTMLDivElement>(null);
   // Referencias mutables sin tipar mapbox a nivel de módulo.
   const mapRef = useRef<unknown>(null);
+  const mapboxRef = useRef<unknown>(null);
+  const mapLoadedRef = useRef<boolean>(false);
   const movingMarkerRef = useRef<unknown>(null);
   const vehiculoMarkerRef = useRef<unknown>(null);
   const vehiculoImgRef = useRef<HTMLImageElement | null>(null);
