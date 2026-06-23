@@ -165,6 +165,16 @@ function Nav() {
   }
 
   const currentPos = geo.stepPositions[idx] ?? geo.destino;
+  const enCabify = actual.tramo.tipo === "cabify";
+  // Rotación del coche: hacia el siguiente waypoint. -90 porque el SVG cenital
+  // apunta por defecto al este.
+  const siguientePos = geo.stepPositions[idx + 1] ?? geo.destino;
+  const rotCoche = useMemo(() => {
+    const dLng = siguientePos[0] - currentPos[0];
+    const dLat = siguientePos[1] - currentPos[1];
+    if (dLng === 0 && dLat === 0) return 0;
+    return (Math.atan2(dLng, dLat) * 180) / Math.PI - 90;
+  }, [currentPos, siguientePos]);
 
   return (
     <PhoneFrame>
@@ -176,9 +186,15 @@ function Nav() {
             zoom={13}
             ruta={rutaSegmentos}
             marcadores={marcadores}
-            marcadorActivo={currentPos}
+            marcadorActivo={enCabify ? undefined : currentPos}
+            vehiculo={
+              enCabify
+                ? { pos: currentPos, svgUrl: "/icons/ic_vehicle_cenital.svg", rotacionDeg: rotCoche, tamano: 48 }
+                : undefined
+            }
             fitRuta
           />
+
           <button
             onClick={() => navigate({ to: "/viaje" })}
             className="absolute top-3 left-3 w-10 h-10 rounded-full bg-surface grid place-items-center z-10"
