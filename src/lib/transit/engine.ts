@@ -396,3 +396,30 @@ export function ordenarOpciones(ops: Opcion[], criterio: Criterio): Opcion[] {
   });
   return sorted;
 }
+
+// --- Helpers de categorías Cabify por opción --------------------------------
+// Devuelve la suma de "precio Cabify" de la opción aplicando un multiplicador
+// determinado. Si no hay tramos Cabify, devuelve 0.
+export function precioCabifyParaOpcion(op: Opcion, multiplicador: number): number {
+  return op.tramos
+    .filter((t) => t.tipo === "cabify")
+    .reduce((s, t) => s + (2.5 + 1.25 * t.distanciaKm) * multiplicador, 0);
+}
+
+// ¿La opción incluye algún tramo Cabify?
+export function opcionTieneCabify(op: Opcion): boolean {
+  return op.modos.includes("cabify");
+}
+
+// Devuelve la lista de categorías con su precio total para la opción dada.
+// El total se obtiene reemplazando el coste Cabify (calculado al multiplicador
+// más barato) por el coste con el multiplicador de cada categoría.
+export function categoriasParaOpcion(op: Opcion) {
+  const precioBaseCabify = precioCabifyParaOpcion(op, CHEAPEST_CABIFY_MULTI);
+  return CABIFY_CATEGORIAS.map((c) => {
+    const precioCabifyCategoria = precioCabifyParaOpcion(op, c.multiplicador);
+    const totalEur = Math.round((op.precioEur - precioBaseCabify + precioCabifyCategoria) * 100) / 100;
+    const precioCabifyEur = Math.round(precioCabifyCategoria * 100) / 100;
+    return { ...c, precioCabifyEur, totalEur };
+  });
+}
