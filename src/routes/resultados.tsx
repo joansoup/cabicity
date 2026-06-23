@@ -68,16 +68,26 @@ function Resultados() {
       <div className="absolute inset-0 flex flex-col bg-bg-subdued">
         <div className="px-3 pt-3 pb-3 bg-bg border-b border-border flex flex-col gap-3">
           <div className="flex items-center gap-2">
-            <button onClick={() => navigate({ to: "/buscar" })} className="w-10 h-10 -ml-2 grid place-items-center">
+            <button onClick={() => navigate({ to: "/buscar" })} className="w-10 h-10 -ml-2 grid place-items-center shrink-0">
               <ArrowLeft size={22} />
             </button>
-            <button
-              onClick={() => navigate({ to: "/buscar" })}
-              className="flex-1 min-w-0 text-left bg-field rounded-[8px] px-3 py-2"
-            >
-              <div className="text-[12px] text-text-secondary truncate">{trip.origen}</div>
-              <div className="text-[15px] font-medium text-text truncate">→ {trip.destino}</div>
-            </button>
+            {/* Dos campos separados (origen / destino), como en la mayoría de apps */}
+            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+              <button
+                onClick={() => navigate({ to: "/buscar" })}
+                className="flex items-center gap-2.5 bg-field rounded-[8px] px-3 py-2 text-left"
+              >
+                <img src="/icons/ic_set_address_1.svg" alt="" className="w-5 h-5 shrink-0" />
+                <span className="flex-1 min-w-0 text-[14px] text-text truncate">{trip.origen}</span>
+              </button>
+              <button
+                onClick={() => navigate({ to: "/buscar" })}
+                className="flex items-center gap-2.5 bg-field rounded-[8px] px-3 py-2 text-left"
+              >
+                <img src="/icons/ic_set_address_2.svg" alt="" className="w-5 h-5 shrink-0" />
+                <span className="flex-1 min-w-0 text-[14px] font-medium text-text truncate">{trip.destino}</span>
+              </button>
+            </div>
           </div>
           <div className="flex gap-2 overflow-x-auto -mx-3 px-3 pb-1">
             {CHIPS.map((c) => (
