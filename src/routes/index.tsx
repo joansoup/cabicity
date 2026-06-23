@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Search, Clock, Home } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { setTrip } from "@/lib/transit/store";
@@ -47,17 +47,47 @@ function HomePage() {
   // Medimos la altura real de la hoja inferior para (1) centrar la ubicación en
   // el área visible del mapa y (2) colocar el botón "centrar mi ubicación"
   // SIEMPRE por encima de la hoja, sin pisarla, pase lo que pase con el contenido.
+  // Hoja inferior ARRASTRABLE con dos posiciones (colapsada / expandida). En
+  // colapsada queda más baja y el último elemento ("Aeropuerto Barajas") se corta
+  // bajo la barra de pestañas, dejando claro que se puede arrastrar.
   const sheetRef = useRef<HTMLDivElement>(null);
-  const [obscuredBottom, setObscuredBottom] = useState(440);
+  const [contH, setContH] = useState(800);
   useEffect(() => {
     const measure = () => {
-      const el = sheetRef.current;
-      if (el) setObscuredBottom(el.offsetHeight + 72); // 72px = bottom de la hoja
+      const parent = sheetRef.current?.offsetParent as HTMLElement | null;
+      setContH(parent?.clientHeight ?? window.innerHeight);
     };
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
   }, []);
+  const COLLAPSED = Math.round(contH * 0.42);
+  const EXPANDED = Math.round(contH * 0.12);
+  const [expanded, setExpanded] = useState(false);
+  const [dragTop, setDragTop] = useState<number | null>(null);
+  const dragRef = useRef<{ startY: number; startTop: number } | null>(null);
+  const sheetTop = dragTop ?? (expanded ? EXPANDED : COLLAPSED);
+  const obscuredBottom = contH - sheetTop;
+  const clampTop = (v: number) => Math.max(EXPANDED, Math.min(COLLAPSED, v));
+  const onDragStart = (e: ReactPointerEvent) => {
+    dragRef.current = { startY: e.clientY, startTop: sheetTop };
+    try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* ignore */ }
+  };
+  const onDragMove = (e: ReactPointerEvent) => {
+    if (!dragRef.current) return;
+    setDragTop(clampTop(dragRef.current.startTop + (e.clientY - dragRef.current.startY)));
+  };
+  const onDragEnd = () => {
+    if (!dragRef.current) return;
+    if (dragTop == null) {
+      // No hubo arrastre: lo tratamos como toque para alternar expandir/colapsar.
+      setExpanded((v) => !v);
+    } else {
+      setExpanded(dragTop < (EXPANDED + COLLAPSED) / 2);
+      setDragTop(null);
+    }
+    dragRef.current = null;
+  };
 
   const goSearch = (destino?: string) => {
     setTrip({ origen: "Calle de Pradillo, 42, Chamartín, 28002 Madrid", destino: destino ?? "", criterio: "equilibrado" });
@@ -79,16 +109,29 @@ function HomePage() {
       <img src="/illustrations/avatar-daniel.svg" alt="Daniel Sáez" className="absolute top-11 left-4 w-12 h-12 rounded-full object-cover z-10" style={{ boxShadow: "var(--shadow-rised)" }} />
 
 
-      {/* bottom sheet (su borde inferior conecta con la barra de navegación) */}
-      <div ref={sheetRef} className="absolute left-0 right-0 bottom-[72px] bg-surface rounded-t-[24px] pt-2 pb-7 flex flex-col gap-3" style={{ boxShadow: "var(--shadow-rised)" }}>
-        <div className="mx-auto h-1 w-9 rounded-full" style={{ background: "var(--sheet-handle)" }} />
-        <div className="px-4">
-          <p className="text-[15px] font-medium text-text-secondary leading-5">Hola, Daniel Sáez</p>
+      {/* bottom sheet ARRASTRABLE */}
+      <div
+        ref={sheetRef}
+        className="absolute left-0 right-0 bottom-0 bg-surface rounded-t-[24px] flex flex-col z-20 overflow-hidden"
+        style={{ top: sheetTop, transition: dragTop == null ? "top 0.34s cubic-bezier(0.32,0.72,0,1)" : "none", boxShadow: "var(--shadow-rised)" }}
+      >
+        {/* zona arrastrable: tirador + cabecera */}
+        <div
+          className="pt-2.5 px-4 cursor-grab active:cursor-grabbing touch-none select-none"
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
+        >
+          <div className="mx-auto h-1.5 w-10 rounded-full" style={{ background: "var(--sheet-handle)" }} />
+          <p className="mt-3 text-[15px] font-medium text-text-secondary leading-5">Hola, Daniel Sáez</p>
           <h1 className="text-[22px] font-bold text-text leading-7">Viaja a tu manera</h1>
         </div>
 
+        {/* contenido desplazable (se corta bajo la barra de pestañas) */}
+        <div className="flex-1 overflow-y-auto pb-28 flex flex-col gap-3 pt-2">
         {/* carrusel de servicios */}
-        <div className="flex gap-2 overflow-x-auto px-4 pt-2.5 pb-1 -mt-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="shrink-0 flex gap-2 overflow-x-auto px-4 pt-2.5 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {SERVICIOS.map((s) => {
             const active = servicio === s.id;
             return (
@@ -121,14 +164,14 @@ function HomePage() {
         {/* buscador */}
         <button
           onClick={() => goSearch()}
-          className="mx-4 bg-field rounded-[8px] px-4 py-3.5 flex items-center gap-3 text-left"
+          className="shrink-0 mx-4 bg-field rounded-[8px] px-4 py-3.5 flex items-center gap-3 text-left"
         >
           <Search size={20} className="text-text-secondary" />
           <span className="text-text-secondary text-[16px]">Introduce tu ruta</span>
         </button>
 
         {/* predicciones */}
-        <ul className="px-2 flex flex-col gap-0.5">
+        <ul className="shrink-0 px-2 flex flex-col gap-0.5">
           {PREDICCIONES.map((p, i) => (
             <li key={i}>
               <button
@@ -149,6 +192,7 @@ function HomePage() {
             </li>
           ))}
         </ul>
+        </div>
       </div>
 
       {/* bottom nav con muesca (Union) + medalla central. Reserva el área segura
