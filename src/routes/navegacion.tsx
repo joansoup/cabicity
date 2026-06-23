@@ -51,15 +51,25 @@ function Nav() {
 
   const actual = pasos[idx];
 
-  // Asistente de voz (Web Speech API del navegador, es-ES). Pensado para escuchar
-  // las indicaciones con auriculares sin sacar el móvil del bolsillo.
-  const decir = (texto: string) => {
-    if (!voz || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  // Asistente de voz con ElevenLabs (voz personalizada de Rosalía). Reproducimos
+  // audio MP3 servido por una server function para no exponer la API key.
+  const ttsFn = useServerFn(speakRosalia);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const reqIdRef = useRef(0);
+
+  const decir = async (texto: string) => {
+    if (!voz || typeof window === "undefined") return;
+    const myId = ++reqIdRef.current;
     try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(texto);
-      u.lang = "es-ES";
-      window.speechSynthesis.speak(u);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      const res = await ttsFn({ data: { text: texto } });
+      if (myId !== reqIdRef.current) return; // llegó tarde, ignora
+      const audio = new Audio(`data:${res.mime};base64,${res.audioBase64}`);
+      audioRef.current = audio;
+      audio.play().catch(() => { /* autoplay bloqueado */ });
     } catch { /* ignore */ }
   };
 
