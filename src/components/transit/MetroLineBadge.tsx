@@ -60,3 +60,55 @@ export function extractMetroLinea(titulo: string): string | null {
   const m = titulo.match(/^\s*(L\d{1,2}|R)\b/i);
   return m ? m[1].toUpperCase() : null;
 }
+
+// ---- Cercanías Renfe Madrid ----
+// Colores oficiales aproximados de cada línea.
+const CERCANIAS_COLORS: Record<string, string> = {
+  "C-1": "#66CCFF",
+  "C-2": "#008B30",
+  "C-3": "#9E1882",
+  "C-4": "#003399",
+  "C-5": "#FFD400",
+  "C-7": "#E40613",
+  "C-8": "#808080",
+  "C-9": "#FF6900",
+  "C-10": "#B4E1FA",
+};
+
+const CERCANIAS_DARK_TEXT = new Set(["C-5", "C-10", "C-1"]);
+
+export function CercaniasLineBadge({ linea, size = 28, className }: { linea: string; size?: number; className?: string }) {
+  const code = (linea || "").toUpperCase().trim();
+  const bg = CERCANIAS_COLORS[code] ?? "#017251";
+  const dark = CERCANIAS_DARK_TEXT.has(code);
+  return (
+    <div
+      className={className}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: Math.round(size * 0.22),
+        background: bg,
+        color: dark ? "#111" : "#FFFFFF",
+        display: "grid",
+        placeItems: "center",
+        fontWeight: 800,
+        fontSize: Math.round(size * 0.38),
+        lineHeight: 1,
+        fontFamily: "system-ui, -apple-system, sans-serif",
+        flexShrink: 0,
+        letterSpacing: "-0.02em",
+      }}
+      aria-label={`Línea ${code} de Cercanías`}
+    >
+      {code}
+    </div>
+  );
+}
+
+// Extrae "C-4" desde el título "C-4 · Origen → Destino".
+export function extractCercaniasLinea(titulo: string): string | null {
+  const m = titulo.match(/^\s*(C-\d{1,2})\b/i);
+  return m ? m[1].toUpperCase() : null;
+}
+

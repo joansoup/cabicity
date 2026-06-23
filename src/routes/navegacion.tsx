@@ -6,7 +6,7 @@ import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
 import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
 import { ModoIcon } from "@/components/transit/ModoIcon";
-import { MetroLineBadge, extractMetroLinea } from "@/components/transit/MetroLineBadge";
+import { MetroLineBadge, extractMetroLinea, CercaniasLineBadge, extractCercaniasLinea } from "@/components/transit/MetroLineBadge";
 import type { Paso, Tramo } from "@/lib/transit/engine";
 import { buildRouteGeo, type LngLat } from "@/lib/transit/routeGeo";
 import { MapaMapbox, type MapaRutaSegmento, type MapaMarcador } from "@/components/transit/MapaMapbox";
@@ -229,6 +229,8 @@ function Nav() {
           <div className="p-4 flex gap-3 items-start border-b border-border">
             {actual.tramo.tipo === "metro" && extractMetroLinea(actual.tramo.titulo) ? (
               <MetroLineBadge linea={extractMetroLinea(actual.tramo.titulo)!} size={48} />
+            ) : actual.tramo.tipo === "cercanias" && extractCercaniasLinea(actual.tramo.titulo) ? (
+              <CercaniasLineBadge linea={extractCercaniasLinea(actual.tramo.titulo)!} size={48} />
             ) : (
               <div className="w-12 h-12 rounded-full grid place-items-center flex-shrink-0 bg-field">
                 <ModoIcon tipo={actual.tramo.tipo} size={26} />
@@ -250,10 +252,13 @@ function Nav() {
           <ul className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
             {pasos.slice(idx + 1, idx + 5).map((p, i) => {
               const metroLinea = p.tramo.tipo === "metro" ? extractMetroLinea(p.tramo.titulo) : null;
+              const cercaniasLinea = p.tramo.tipo === "cercanias" ? extractCercaniasLinea(p.tramo.titulo) : null;
               return (
                 <li key={i} className="flex items-center gap-3 p-2 rounded-[8px]">
                   {metroLinea ? (
                     <MetroLineBadge linea={metroLinea} size={32} />
+                  ) : cercaniasLinea ? (
+                    <CercaniasLineBadge linea={cercaniasLinea} size={32} />
                   ) : (
                     <div className="w-8 h-8 rounded-full grid place-items-center bg-field">
                       <ModoIcon tipo={p.tramo.tipo} size={16} />
