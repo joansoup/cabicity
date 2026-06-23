@@ -27,8 +27,8 @@ const SERVICIOS = [
   { id: "cabify", label: "Cabify", img: "/illustrations/cabify.svg" },
   { id: "moto", label: "Moto", img: "/illustrations/moto.svg" },
   { id: "city", label: "Cabify City", img: "/illustrations/city.svg", nuevo: true },
-  { id: "carsharing", label: "Carsharing", img: "/illustrations/carsharing.svg" },
-  { id: "envios", label: "Envíos", img: "/illustrations/envios.svg" },
+  { id: "voltio", label: "Voltio", img: "/illustrations/voltio.svg" },
+  { id: "reservas", label: "Reservas", img: "/illustrations/reservas.svg" },
 ];
 
 // Forma cóncava de la barra de navegación (Union, fiel al diseño Cabify).
