@@ -18,13 +18,6 @@ const CHIPS: { id: Criterio; label: string }[] = [
   { id: "ecologico", label: "Ecológico" },
 ];
 
-// Copy de venta para opciones Cabify: compara contra la opción de metro simple
-// para destacar cuánto más cuesta y cuánto tiempo se ahorra.
-function fraseVenta(op: Opcion, metro: Opcion | null): string | null {
-  if (!metro || op.id === metro.id) return null;
-  if (!op.modos.includes("cabify")) return null;
-  return `14 min más rápido que el metro`;
-}
 
 function Resultados() {
   const navigate = useNavigate();
