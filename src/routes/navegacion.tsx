@@ -252,10 +252,13 @@ function Nav() {
           <ul className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
             {pasos.slice(idx + 1, idx + 5).map((p, i) => {
               const metroLinea = p.tramo.tipo === "metro" ? extractMetroLinea(p.tramo.titulo) : null;
+              const cercaniasLinea = p.tramo.tipo === "cercanias" ? extractCercaniasLinea(p.tramo.titulo) : null;
               return (
                 <li key={i} className="flex items-center gap-3 p-2 rounded-[8px]">
                   {metroLinea ? (
                     <MetroLineBadge linea={metroLinea} size={32} />
+                  ) : cercaniasLinea ? (
+                    <CercaniasLineBadge linea={cercaniasLinea} size={32} />
                   ) : (
                     <div className="w-8 h-8 rounded-full grid place-items-center bg-field">
                       <ModoIcon tipo={p.tramo.tipo} size={16} />
