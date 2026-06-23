@@ -162,7 +162,7 @@ function HomePage() {
 
 function NavTab({ label, svg, active }: { label: string; svg: string; active?: boolean }) {
   return (
-    <button className="flex-1 flex flex-col items-center gap-1 pb-1.5">
+    <button className="flex-1 flex flex-col items-center gap-1.5 pb-3">
       <span className="w-6 h-6" dangerouslySetInnerHTML={{ __html: svg }} />
       <span className={`text-[11px] font-medium ${active ? "text-brand" : "text-text-secondary"}`}>{label}</span>
     </button>
