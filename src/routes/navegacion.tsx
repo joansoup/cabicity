@@ -34,6 +34,7 @@ function Nav() {
   const [trip, setT] = useState<TripState | null>(null);
   const [idx, setIdx] = useState(0);
   const [llegado, setLlegado] = useState(false);
+  const [escaneando, setEscaneando] = useState(false);
   const [voz, setVoz] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("ct-voz") === "1";
@@ -90,6 +91,18 @@ function Nav() {
     } else {
       setIdx((i) => i + 1);
     }
+  };
+
+  // Escaneo de QR de la BiciMAD: cámara falsa que "lee" el código y desbloquea.
+  const escanearQr = () => {
+    if (escaneando) return;
+    setEscaneando(true);
+    decir("Escaneando el código QR");
+    setTimeout(() => {
+      setEscaneando(false);
+      decir("Bici desbloqueada. ¡A pedalear!");
+      next();
+    }, 1900);
   };
 
   const op = trip?.seleccionada;
@@ -153,7 +166,7 @@ function Nav() {
           {op.puntos > 0 && (
             <div className="bg-cashback-bg text-cashback-text rounded-[24px] p-5 flex flex-col items-center gap-1 mt-2">
               <div className="text-[13px] font-bold uppercase tracking-wide flex items-center gap-1.5">
-                <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-4 h-4" /> Cabify Club
+                <img src="/illustrations/club-hexagon.svg" alt="" className="w-4 h-4" /> Cabify Club
               </div>
               <div className="text-[40px] font-bold leading-none">+{op.puntos}</div>
               <div className="text-[13px]">puntos para canjear en la app</div>
@@ -216,8 +229,11 @@ function Nav() {
             }}
             className="absolute top-3 right-3 w-10 h-10 rounded-full bg-surface grid place-items-center z-10"
             style={{ boxShadow: "var(--shadow-rised)" }}
+            aria-label={voz ? "Silenciar guía por voz" : "Activar guía por voz"}
           >
-            {voz ? <Volume2 size={20} /> : <VolumeX size={20} className="text-text-secondary" />}
+            {voz
+              ? <Volume2 size={20} style={{ color: "var(--brand)" }} />
+              : <VolumeX size={20} style={{ color: "var(--danger, #e2342d)" }} />}
           </button>
         </div>
 
@@ -272,23 +288,70 @@ function Nav() {
           <div className="p-4 border-t border-border space-y-3">
             {op.puntos > 0 && (
               <div className="rounded-[16px] bg-cashback-bg text-cashback-text px-3.5 py-2.5 flex items-center gap-2.5">
-                <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-5 h-5 flex-shrink-0" />
+                <img src="/illustrations/club-hexagon.svg" alt="" className="w-5 h-5 flex-shrink-0" />
                 <div className="text-[13px] leading-tight">
                   Ganarás <span className="font-bold">+{op.puntos} puntos</span> Cabify Club al completar este viaje
                 </div>
               </div>
             )}
-            <button
-              onClick={next}
-              className="w-full h-12 rounded-[8px] bg-brand text-white font-bold text-[16px] flex items-center justify-center gap-2"
-            >
-              Siguiente paso <ChevronRight size={18} />
-            </button>
+            {actual.paso.qr ? (
+              <QrScanner escaneando={escaneando} onScan={escanearQr} />
+            ) : (
+              <button
+                onClick={next}
+                className="w-full h-12 rounded-[8px] bg-brand text-white font-bold text-[16px] flex items-center justify-center gap-2"
+              >
+                Siguiente paso <ChevronRight size={18} />
+              </button>
+            )}
           </div>
 
         </div>
       </div>
     </PhoneFrame>
+  );
+}
+
+// Cámara falsa de escaneo de QR para desbloquear la BiciMAD. Muestra un visor
+// con un QR simulado y una línea de escaneo animada; al pulsar "Escanear",
+// reproduce la lectura y continúa el viaje.
+function QrScanner({ escaneando, onScan }: { escaneando: boolean; onScan: () => void }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <style>{`@keyframes ct-scan{0%{top:6%}50%{top:90%}100%{top:6%}}`}</style>
+      <div
+        className="relative mx-auto w-full max-w-[260px] aspect-square rounded-[20px] overflow-hidden"
+        style={{ background: "linear-gradient(135deg,#1c1c2e,#2c2150)" }}
+      >
+        {/* QR simulado */}
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="w-[55%] aspect-square rounded-[10px] bg-white p-2.5" style={{ opacity: escaneando ? 1 : 0.92 }}>
+            <svg viewBox="0 0 100 100" className="w-full h-full" shapeRendering="crispEdges" aria-label="Código QR BiciMAD">
+              <rect width="100" height="100" fill="#fff" />
+              <path fill="#111" d="M10 10h25v25H10zM15 15v15h15V15zM65 10h25v25H65zM70 15v15h15V15zM10 65h25v25H10zM15 70v15h15V70z" />
+              <path fill="#111" d="M45 10h6v6h-6zM55 16h6v6h-6zM45 22h6v6h-6zM62 40h6v6h-6zM40 45h6v6h-6zM50 50h6v6h-6zM70 55h6v6h-6zM45 62h6v6h-6zM58 66h6v6h-6zM66 72h6v6h-6zM50 78h6v6h-6zM78 45h6v6h-6zM84 60h6v6h-6zM40 84h6v6h-6z" />
+            </svg>
+          </div>
+        </div>
+        {/* marco visor */}
+        <div className="absolute inset-5 rounded-[14px] border-2 border-white/70" />
+        {/* línea de escaneo */}
+        <div
+          className="absolute left-5 right-5 h-0.5 rounded-full"
+          style={{ background: "var(--brand)", boxShadow: "0 0 12px 2px var(--brand)", animation: escaneando ? "ct-scan 1s linear infinite" : "none", top: "6%", opacity: escaneando ? 1 : 0.4 }}
+        />
+        {escaneando && (
+          <div className="absolute bottom-3 left-0 right-0 text-center text-white text-[13px] font-bold">Leyendo QR…</div>
+        )}
+      </div>
+      <button
+        onClick={onScan}
+        disabled={escaneando}
+        className="w-full h-12 rounded-[8px] bg-brand text-white font-bold text-[16px] flex items-center justify-center gap-2 disabled:opacity-60"
+      >
+        {escaneando ? "Desbloqueando…" : "Escanear QR"}
+      </button>
+    </div>
   );
 }
 

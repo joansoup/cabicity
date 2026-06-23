@@ -12,12 +12,23 @@ export const Route = createFileRoute("/resultados")({
 });
 
 const CHIPS: { id: Criterio; label: string }[] = [
-  { id: "equilibrado", label: "Equilibrado" },
-  { id: "rapido", label: "Rápido" },
-  { id: "barato", label: "Barato" },
-  { id: "ecologico", label: "Ecológico" },
+  { id: "equilibrado", label: "⚖️ Equilibrado" },
+  { id: "rapido", label: "⚡ Rápido" },
+  { id: "barato", label: "💰 Barato" },
+  { id: "ecologico", label: "🌿 Ecológico" },
+  { id: "seguro", label: "🛡️ Más seguro" },
 ];
 
+// Copy de venta de Cabify: compara el Cabify directo con la opción más barata
+// para destacar el valor de pagar un poco más por ahorrar tiempo.
+function fraseVentaCabify(op: Opcion, ref: Opcion | null): string | null {
+  if (!ref || op.id === ref.id) return null;
+  const extra = op.precioEur - ref.precioEur;
+  const ahorro = Math.round(ref.etaMin - op.etaMin);
+  if (extra <= 0.01 || ahorro <= 0) return null;
+  const e = `${extra.toFixed(2).replace(".", ",")} €`;
+  return `Con ${e} adicionales recortas ${ahorro} min de trayecto`;
+}
 
 function Resultados() {
   const navigate = useNavigate();
@@ -32,12 +43,16 @@ function Resultados() {
 
   const { opciones, distKm } = useMemo(() => {
     if (!trip?.destino) return { opciones: [], distKm: 0 };
-    return generarOpciones(trip.destino);
-  }, [trip?.destino]);
+    const coords =
+      trip.destinoLng != null && trip.destinoLat != null
+        ? ([trip.destinoLng, trip.destinoLat] as [number, number])
+        : undefined;
+    return generarOpciones(trip.destino, coords);
+  }, [trip?.destino, trip?.destinoLng, trip?.destinoLat]);
 
   const ordenadas = useMemo(() => ordenarOpciones(opciones, criterio), [opciones, criterio]);
-  const fastestId = useMemo(
-    () => [...ordenadas].sort((a, b) => a.etaMin - b.etaMin)[0]?.id ?? null,
+  const masBarata = useMemo(
+    () => ordenadas.reduce<Opcion | null>((a, b) => (!a || b.precioEur < a.precioEur ? b : a), null),
     [ordenadas]
   );
 
@@ -117,20 +132,21 @@ function Resultados() {
 
               {op.puntos > 0 && (
                 <div className="self-start bg-cashback-bg text-cashback-text rounded-full pl-1.5 pr-3 py-1 text-[12px] font-bold flex items-center gap-1.5">
-                  <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-4 h-4" />
+                  <img src="/illustrations/club-hexagon.svg" alt="" className="w-4 h-4" />
                   +{op.puntos} puntos Cabify Club
                 </div>
               )}
 
-              {op.id === fastestId && (
-                <div className="self-start bg-eco-bg text-eco-text rounded-full px-3 py-1 text-[12px] font-bold">
-                  Opción más rápida
-                </div>
-              )}
-
-              {op.desglose && (
-                <div className="text-[12px] text-text-secondary">{op.desglose}</div>
-              )}
+              {/* Mensaje de venta destacado: SOLO en la opción Cabify directa,
+                  prominente, verde y sin icono a la izquierda. */}
+              {op.modos.length === 1 && op.modos[0] === "cabify" && (() => {
+                const v = fraseVentaCabify(op, masBarata);
+                return v ? (
+                  <div className="bg-eco-bg text-eco-text rounded-[10px] px-3 py-2 text-[13px] font-bold leading-snug">
+                    {v}
+                  </div>
+                ) : null;
+              })()}
             </button>
           ))}
           {ordenadas.length === 0 && (

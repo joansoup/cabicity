@@ -2,7 +2,7 @@
 // dinámicamente dentro de un useEffect, con guarda de window. Si no hay
 // VITE_MAPBOX_TOKEN, renderiza un fallback visual sin romper el SSR.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getMapboxToken } from "@/lib/transit/routeGeo";
 
 export type LngLat = [number, number];
@@ -119,6 +119,18 @@ export function MapaMapbox({
   const movingMarkerRef = useRef<unknown>(null);
   const vehiculoMarkerRef = useRef<unknown>(null);
   const vehiculoImgRef = useRef<HTMLImageElement | null>(null);
+  // Punto al que vuelve el botón "centrar mi ubicación".
+  const focoRef = useRef<LngLat>(centro);
+  focoRef.current = ubicacionActual ?? marcadorActivo ?? centro;
+  // Se muestra el botón cuando el usuario ha desplazado el mapa a mano.
+  const [desviado, setDesviado] = useState(false);
+
+  const centrarUbicacion = () => {
+    const map = mapRef.current as { easeTo: (o: unknown) => void; getZoom: () => number } | null;
+    if (!map) return;
+    try { map.easeTo({ center: focoRef.current, zoom: Math.max(map.getZoom(), zoom), duration: 700 }); } catch { /* ignore */ }
+    setDesviado(false);
+  };
 
   // Init mapa (cliente only, import dinámico)
   useEffect(() => {
@@ -158,15 +170,15 @@ export function MapaMapbox({
         try { map.jumpTo({ center: centro, zoom }); } catch { /* ignore */ }
       }
 
-      // Interactivo: tras 10s de inactividad vuelve a centrarse en el origen.
+      // Interactivo: al mover el mapa a mano aparece el botón "centrar mi
+      // ubicación" (como Google Maps). No recentramos solos: dejamos que el
+      // usuario decida cuándo volver, igual que cualquier app de mapas.
       if (interactive) {
-        let recenterT: ReturnType<typeof setTimeout> | undefined;
+        map.on("dragstart", (e: { originalEvent?: unknown }) => {
+          if (e.originalEvent) setDesviado(true);
+        });
         map.on("moveend", (e: { originalEvent?: unknown }) => {
-          if (!e.originalEvent) return; // solo si lo movió el usuario
-          if (recenterT) clearTimeout(recenterT);
-          recenterT = setTimeout(() => {
-            try { map.easeTo({ center: centro, zoom, duration: 800 }); } catch { /* ignore */ }
-          }, 10000);
+          if (e.originalEvent) setDesviado(true);
         });
       }
 
@@ -355,13 +367,32 @@ export function MapaMapbox({
   }
 
   return (
-    <div
-      ref={containerRef}
-      className={className}
-      // Inline style: gana en especificidad/orden a `.mapboxgl-map { position: relative }`
-      // de mapbox-gl.css, que si no colapsa la altura del contenedor (inset-0 deja de
-      // aplicar al volverse relative) y el mapa se queda en blanco.
-      style={{ position: "absolute", inset: 0 }}
-    />
+    <>
+      <div
+        ref={containerRef}
+        className={className}
+        // Inline style: gana en especificidad/orden a `.mapboxgl-map { position: relative }`
+        // de mapbox-gl.css, que si no colapsa la altura del contenedor (inset-0 deja de
+        // aplicar al volverse relative) y el mapa se queda en blanco.
+        style={{ position: "absolute", inset: 0 }}
+      />
+      {interactive && desviado && (
+        <button
+          onClick={centrarUbicacion}
+          aria-label="Centrar mi ubicación"
+          className="absolute right-4 z-20 w-11 h-11 rounded-full bg-surface grid place-items-center"
+          style={{ bottom: paddingBottom > 0 ? paddingBottom + 16 : 16, boxShadow: "var(--shadow-rised)" }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3.2" fill="var(--brand)" stroke="none" />
+            <circle cx="12" cy="12" r="7" />
+            <line x1="12" y1="1.5" x2="12" y2="4.5" />
+            <line x1="12" y1="19.5" x2="12" y2="22.5" />
+            <line x1="1.5" y1="12" x2="4.5" y2="12" />
+            <line x1="19.5" y1="12" x2="22.5" y2="12" />
+          </svg>
+        </button>
+      )}
+    </>
   );
 }

@@ -11,14 +11,29 @@ export const Route = createFileRoute("/buscar")({
 
 const ORIGEN_DEFAULT = "Calle de Pradillo, 42, Chamartín, 28002 Madrid";
 
-const RECIENTES = [
-  { tipo: "casa", titulo: "Casa", sub: "Calle de las Flores, 8, Madrid" },
-  { tipo: "reciente", titulo: "El Corte Inglés", sub: "Calle Princesa, 64" },
-  { tipo: "reciente", titulo: "Aeropuerto Barajas - T2", sub: "Barajas, Madrid" },
-  { tipo: "reciente", titulo: "AVE Madrid - Sevilla", sub: "Estación Madrid Atocha" },
+type Sug = { tipo: string; titulo: string; sub: string; lng?: number; lat?: number };
+
+const RECIENTES: Sug[] = [
+  { tipo: "casa", titulo: "Casa", sub: "Calle de las Flores, 8, Madrid", lng: -3.7038, lat: 40.422 },
+  { tipo: "reciente", titulo: "El Corte Inglés", sub: "Calle Princesa, 64", lng: -3.7155, lat: 40.4318 },
+  { tipo: "reciente", titulo: "Aeropuerto Barajas - T2", sub: "Barajas, Madrid", lng: -3.5935, lat: 40.4729 },
+  { tipo: "reciente", titulo: "AVE Madrid - Sevilla", sub: "Estación Madrid Atocha", lng: -3.6907, lat: 40.4067 },
 ];
 
-type Sug = { tipo: string; titulo: string; sub: string };
+// Geocodifica una consulta y devuelve sus coordenadas (o undefined). Se usa al
+// enviar si el usuario tecleó libremente sin elegir una sugerencia.
+async function geocodeUno(q: string): Promise<[number, number] | undefined> {
+  try {
+    const token = getMapboxToken();
+    const url =
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json` +
+      `?access_token=${token}&country=es&language=es&limit=1&proximity=-3.6708,40.449`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const c = data.features?.[0]?.center;
+    return Array.isArray(c) ? [c[0], c[1]] : undefined;
+  } catch { return undefined; }
+}
 
 function BuscarPage() {
   const navigate = useNavigate();
@@ -26,6 +41,7 @@ function BuscarPage() {
   const [destino, setDestino] = useState("");
   const [sugerencias, setSugerencias] = useState<Sug[]>(RECIENTES);
   const [eligiendo, setEligiendo] = useState(false);
+  const [destCoords, setDestCoords] = useState<[number, number] | undefined>(undefined);
 
   // Autocompletado real de destino con la API de geocoding de Mapbox (como en
   // cualquier app de viajes): sugiere lugares reales según escribes.
@@ -44,10 +60,12 @@ function BuscarPage() {
         const res = await fetch(url, { signal: ctrl.signal });
         const data = await res.json();
         const feats: Sug[] = (data.features || []).map(
-          (f: { text?: string; place_name?: string }) => ({
+          (f: { text?: string; place_name?: string; center?: [number, number] }) => ({
             tipo: "reciente",
             titulo: f.text || f.place_name || "",
             sub: f.place_name || "",
+            lng: f.center?.[0],
+            lat: f.center?.[1],
           })
         );
         if (feats.length) setSugerencias(feats);
@@ -67,9 +85,15 @@ function BuscarPage() {
     }
   }, []);
 
-  const submit = () => {
+  const submit = async () => {
     if (!origen.trim() || !destino.trim()) return;
-    setTrip({ origen, destino, criterio: "equilibrado", seleccionada: undefined });
+    // Coordenadas reales del destino: las de la sugerencia elegida o, si el
+    // usuario tecleó libremente, geocodificamos al vuelo para enrutar de verdad.
+    const coords = destCoords ?? (await geocodeUno(destino));
+    setTrip({
+      origen, destino, criterio: "equilibrado", seleccionada: undefined,
+      destinoLng: coords?.[0], destinoLat: coords?.[1],
+    });
     navigate({ to: "/resultados" });
   };
 
@@ -108,7 +132,11 @@ function BuscarPage() {
           {sugerencias.map((p, i) => (
             <li key={i}>
               <button
-                onClick={() => { setEligiendo(true); setDestino(p.sub || p.titulo); }}
+                onClick={() => {
+                  setEligiendo(true);
+                  setDestino(p.sub || p.titulo);
+                  setDestCoords(p.lng != null && p.lat != null ? [p.lng, p.lat] : undefined);
+                }}
                 className="w-full p-3 rounded-[8px] flex items-center gap-4 text-left hover:bg-field"
               >
                 <span className="w-9 h-9 rounded-[8px] grid place-items-center" style={{

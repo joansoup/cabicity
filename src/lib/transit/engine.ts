@@ -1,5 +1,11 @@
 // Motor determinista del comparador (Cabify Transit)
 // Resumen aplicado de transit-model.md
+import { rutaMetro, type LngLat } from "./metroRouter";
+import { rutaCercanias } from "./cercaniasRouter";
+
+// Origen real fijo: Calle de Pradillo, 42 (Chamartín). Debe coincidir con SOL
+// en routeGeo.ts para que mapa y datos estén alineados.
+const ORIGEN_COORDS: LngLat = [-3.6708, 40.449];
 
 export type ModoTipo =
   | "cabify"
@@ -13,6 +19,7 @@ export type ModoTipo =
 export interface Paso {
   instruccion: string;
   duracionMin: number;
+  qr?: boolean; // paso de escaneo de QR (BiciMAD): la UI muestra cámara falsa
 }
 
 export interface Tramo {
@@ -24,6 +31,7 @@ export interface Tramo {
   pasos: Paso[];
   color: string;
   icono: string; // /icons/... o "lucide:Bus"
+  coords?: LngLat[]; // trazado REAL del tramo (estaciones GTFS) si está disponible
 }
 
 export interface Opcion {
@@ -121,6 +129,13 @@ const SOSTENIBLE: Record<ModoTipo, boolean> = {
 // el viaje se hace dentro del ecosistema Cabify.
 const PUNTOS_POR_KM: Record<ModoTipo, number> = {
   andando: 12, bicimad: 9, metro: 6, cercanias: 6, bus: 5, ave: 4, cabify: 3,
+};
+
+// Puntuación de "seguridad" percibida por modo (0-10). Cabify lidera: viaje
+// puerta a puerta, conductor identificado y trayecto monitorizado. El transporte
+// público es seguro; andar/bici de noche o el bus tienen algo más de exposición.
+const SEGURIDAD: Record<ModoTipo, number> = {
+  cabify: 10, ave: 9, cercanias: 8, metro: 7, bus: 6, bicimad: 4, andando: 3,
 };
 
 const NOMBRES: Record<ModoTipo, string> = {
@@ -225,10 +240,12 @@ function tramoBici(distKm: number): Tramo {
   const dur = Math.max(3, Math.round((distKm / MODOS.bicimad.speed) * 60));
   return {
     tipo: "bicimad", titulo: `BiciMAD ${distKm.toFixed(1)} km`, subtitulo: "Bici eléctrica pública",
-    duracionMin: dur, distanciaKm: distKm, color: MODOS.bicimad.color, icono: MODOS.bicimad.icono,
+    duracionMin: dur + 3, distanciaKm: distKm, color: MODOS.bicimad.color, icono: MODOS.bicimad.icono,
     pasos: [
-      { instruccion: "Recoge una BiciMAD en la estación más cercana", duracionMin: 1 },
-      { instruccion: `Pedalea ${distKm.toFixed(1)} km hasta tu destino`, duracionMin: dur - 1 },
+      { instruccion: "Camina hasta el tótem BiciMAD más cercano", duracionMin: 2 },
+      { instruccion: "Escanea el código QR para desbloquear la bici", duracionMin: 1, qr: true },
+      { instruccion: `Pedalea ${distKm.toFixed(1)} km hasta el tótem de destino`, duracionMin: dur - 1 },
+      { instruccion: "Ancla la bici en el tótem y camina a tu destino", duracionMin: 1 },
     ],
   };
 }
@@ -348,15 +365,131 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
   };
 }
 
-// --- API pública -----------------------------------------------------------
-export type Criterio = "equilibrado" | "rapido" | "barato" | "ecologico";
+// --- opciones con datos REALES (GTFS Metro / red Cercanías) ------------------
+function haversineKm(a: LngLat, b: LngLat): number {
+  const R = 6371;
+  const dLat = ((b[1] - a[1]) * Math.PI) / 180;
+  const dLng = ((b[0] - a[0]) * Math.PI) / 180;
+  const la1 = (a[1] * Math.PI) / 180, la2 = (b[1] * Math.PI) / 180;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
 
-export function generarOpciones(destino: string): { distKm: number; opciones: Opcion[] } {
+function tramoCaminarA(coords: LngLat[], hacia: string): Tramo {
+  let km = 0;
+  for (let i = 1; i < coords.length; i++) km += haversineKm(coords[i - 1], coords[i]);
+  const dur = Math.max(1, Math.round((km / MODOS.andando.speed) * 60));
+  const metros = Math.round(km * 1000);
+  return {
+    tipo: "andando", titulo: `Camina ${metros} m hasta ${hacia}`,
+    duracionMin: dur, distanciaKm: km, color: MODOS.andando.color, icono: MODOS.andando.icono,
+    coords, pasos: [{ instruccion: `Camina ${metros} m hasta ${hacia}`, duracionMin: dur }],
+  };
+}
+
+// Construye una opción de Metro REAL enrutando sobre el grafo GTFS oficial.
+function opcionMetroReal(destino: LngLat): Opcion | null {
+  const r = rutaMetro(ORIGEN_COORDS, destino);
+  if (!r) return null;
+  const tramos: Tramo[] = [];
+  let distKm = 0;
+
+  if (r.caminarOrigenM > 130) {
+    tramos.push(tramoCaminarA([ORIGEN_COORDS, [r.origen.lng, r.origen.lat]], r.origen.n));
+  }
+  r.tramos.forEach((t, i) => {
+    const dur = Math.max(1, Math.round(t.secs / 60));
+    let km = 0;
+    for (let j = 1; j < t.coords.length; j++) km += haversineKm(t.coords[j - 1], t.coords[j]);
+    distKm += km;
+    const linea = `L${t.linea}`;
+    tramos.push({
+      tipo: "metro", titulo: `${linea} · ${t.desde} → ${t.hasta}`,
+      subtitulo: `${t.paradas} ${t.paradas === 1 ? "parada" : "paradas"}`,
+      duracionMin: dur, distanciaKm: km, color: t.color, icono: MODOS.metro.icono,
+      coords: t.coords,
+      pasos: [
+        { instruccion: i === 0 ? `Coge la ${linea} en ${t.desde}` : `Transbordo a ${linea} en ${t.desde}`, duracionMin: 1 },
+        { instruccion: `Continúa ${t.paradas} ${t.paradas === 1 ? "parada" : "paradas"} hasta ${t.hasta}`, duracionMin: Math.max(1, dur - 1) },
+      ],
+    });
+  });
+  if (r.caminarDestinoM > 130) {
+    const dEnd: LngLat = [r.destino.lng, r.destino.lat];
+    tramos.push(tramoCaminarA([dEnd, destino], "tu destino"));
+  }
+
+  distKm = Math.round(distKm * 10) / 10;
+  const eta = tramos.reduce((s, t) => s + t.duracionMin, 0);
+  const co2 = round2(MODOS.metro.co2 * distKm);
+  const puntos = capPuntos(PUNTOS_POR_KM.metro * distKm, false);
+  return {
+    id: "simple-metro", tipo: "simple", nombre: "Metro", modos: ["metro"], tramos,
+    etaMin: eta, precioEur: round2(MODOS.metro.price()), co2Kg: co2, puntos, esSostenible: true,
+  };
+}
+
+// Construye una opción de Cercanías REAL sobre la red CRTM/Renfe modelada.
+function opcionCercaniasReal(destino: LngLat): Opcion | null {
+  const r = rutaCercanias(ORIGEN_COORDS, destino);
+  if (!r) return null;
+  const tramos: Tramo[] = [];
+  let distKm = 0;
+
+  if (r.caminarOrigenM > 150) {
+    tramos.push(tramoCaminarA([ORIGEN_COORDS, [r.origen.lng, r.origen.lat]], r.origen.n));
+  }
+  r.tramos.forEach((t, i) => {
+    const dur = Math.max(2, Math.round(t.secs / 60));
+    let km = 0;
+    for (let j = 1; j < t.coords.length; j++) km += haversineKm(t.coords[j - 1], t.coords[j]);
+    distKm += km;
+    const linea = t.linea.replace(/^C/, "C-"); // "C1" -> "C-1" (formato del badge)
+    tramos.push({
+      tipo: "cercanias", titulo: `${linea} · ${t.desde} → ${t.hasta}`,
+      subtitulo: "Cercanías Renfe", duracionMin: dur, distanciaKm: km,
+      color: t.color, icono: MODOS.cercanias.icono, coords: t.coords,
+      pasos: [
+        { instruccion: i === 0 ? `Toma ${linea} en ${t.desde}` : `Transbordo a ${linea} en ${t.desde}`, duracionMin: 1 },
+        { instruccion: `Trayecto hasta ${t.hasta}`, duracionMin: Math.max(1, dur - 1) },
+      ],
+    });
+  });
+  if (r.caminarDestinoM > 150) {
+    const dEnd: LngLat = [r.destino.lng, r.destino.lat];
+    tramos.push(tramoCaminarA([dEnd, destino], "tu destino"));
+  }
+
+  distKm = Math.round(distKm * 10) / 10;
+  const eta = tramos.reduce((s, t) => s + t.duracionMin, 0);
+  const co2 = round2(MODOS.cercanias.co2 * distKm);
+  const interurbano = distKm > 60;
+  const puntos = capPuntos(PUNTOS_POR_KM.cercanias * distKm, interurbano);
+  return {
+    id: "simple-cercanias", tipo: "simple", nombre: "Cercanías", modos: ["cercanias"], tramos,
+    etaMin: eta, precioEur: round2(MODOS.cercanias.price(distKm)), co2Kg: co2, puntos, esSostenible: true,
+  };
+}
+
+// --- API pública -----------------------------------------------------------
+export type Criterio = "equilibrado" | "rapido" | "barato" | "ecologico" | "seguro";
+
+export function generarOpciones(
+  destino: string,
+  coords?: [number, number]
+): { distKm: number; opciones: Opcion[] } {
   const distKm = distanciaPara(destino);
   const seed = hashStr(destino || "x");
   const opciones: Opcion[] = [];
 
+  // Si tenemos coordenadas reales del destino, enrutamos Metro y Cercanías sobre
+  // las redes reales (GTFS Metro / red CRTM). Si no, caemos al modelo sintético.
+  const metroReal = coords ? opcionMetroReal(coords) : null;
+  const cercaniasReal = coords ? opcionCercaniasReal(coords) : null;
+
   (["cabify", "metro", "cercanias", "ave", "andando", "bicimad", "bus"] as ModoTipo[]).forEach((m) => {
+    if (m === "metro" && metroReal) { opciones.push(metroReal); return; }
+    if (m === "cercanias" && cercaniasReal) { opciones.push(cercaniasReal); return; }
     if (MODOS[m].avail(distKm)) opciones.push(opcionSimple(m, distKm, seed));
   });
 
@@ -414,6 +547,8 @@ export function ordenarOpciones(ops: Opcion[], criterio: Criterio): Opcion[] {
     const mn = Math.min(...arr), mx = Math.max(...arr);
     return mx === mn ? 0 : (v - mn) / (mx - mn);
   };
+  // Seguridad de una opción: la del modo menos seguro de la ruta (el eslabón débil).
+  const seguridad = (o: Opcion) => Math.min(...o.modos.map((m) => SEGURIDAD[m]));
   const sorted = [...ops];
   sorted.sort((a, b) => {
     if (criterio === "rapido") return a.etaMin - b.etaMin || a.precioEur - b.precioEur;
@@ -422,6 +557,7 @@ export function ordenarOpciones(ops: Opcion[], criterio: Criterio): Opcion[] {
       return d !== 0 ? d : a.etaMin - b.etaMin;
     }
     if (criterio === "ecologico") return a.co2Kg - b.co2Kg || a.etaMin - b.etaMin;
+    if (criterio === "seguro") return seguridad(b) - seguridad(a) || a.etaMin - b.etaMin;
     const sa = 0.5 * norm(a.etaMin, eta) + 0.3 * norm(a.precioEur, pre) + 0.2 * norm(a.co2Kg, co2);
     const sb = 0.5 * norm(b.etaMin, eta) + 0.3 * norm(b.precioEur, pre) + 0.2 * norm(b.co2Kg, co2);
     return sa - sb || a.etaMin - b.etaMin;

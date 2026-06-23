@@ -64,7 +64,7 @@ function Viaje() {
 
             {op.puntos > 0 && (
               <div className="bg-cashback-bg text-cashback-text rounded-[12px] px-3 py-2.5 text-[14px] font-bold flex items-center gap-2">
-                <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-5 h-5" />
+                <img src="/illustrations/club-hexagon.svg" alt="" className="w-5 h-5" />
                 Ganarás +{op.puntos} puntos Cabify Club
               </div>
             )}

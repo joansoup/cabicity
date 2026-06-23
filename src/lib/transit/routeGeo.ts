@@ -78,11 +78,16 @@ export function buildRouteGeo(op: Opcion, destinoTexto: string): RouteGeo {
   let cursor: LngLat = SOL;
 
   op.tramos.forEach((t, i) => {
-    const km = escala(t.distanciaKm);
-    // pequeño giro entre tramos para representar transbordo
-    if (i > 0) bearing += ((seed >> (i * 3)) % 60) - 30;
-    const pts = advance(cursor, km, bearing, seed + i, t.tipo === "andando" ? 0.2 : 0.5);
-    const segCoords = pts;
+    let segCoords: LngLat[];
+    if (t.coords && t.coords.length >= 2) {
+      // Trazado REAL del tramo (coordenadas de estaciones GTFS/red real).
+      segCoords = t.coords as LngLat[];
+    } else {
+      const km = escala(t.distanciaKm);
+      // pequeño giro entre tramos para representar transbordo
+      if (i > 0) bearing += ((seed >> (i * 3)) % 60) - 30;
+      segCoords = advance(cursor, km, bearing, seed + i, t.tipo === "andando" ? 0.2 : 0.5);
+    }
     segments.push({
       tramoIdx: i,
       tipo: t.tipo,

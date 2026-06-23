@@ -4,7 +4,6 @@ import { Search, Clock, Home } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { setTrip } from "@/lib/transit/store";
 import { MapaMapbox } from "@/components/transit/MapaMapbox";
-import ivanAvatar from "@/assets/ivan-avatar.png.asset.json";
 
 
 export const Route = createFileRoute("/")({
@@ -44,7 +43,7 @@ const IC_ENVIAR = `<svg width="24" height="24" viewBox="48 0 24 24" fill="none" 
 
 function HomePage() {
   const navigate = useNavigate();
-  const [servicio, setServicio] = useState("city");
+  const [servicio, setServicio] = useState("cabify");
 
   const goSearch = (destino?: string) => {
     setTrip({ origen: "Calle de Pradillo, 42, Chamartín, 28002 Madrid", destino: destino ?? "", criterio: "equilibrado" });
@@ -63,7 +62,7 @@ function HomePage() {
       </div>
 
       {/* avatar */}
-      <img src={ivanAvatar.url} alt="Iván" className="absolute top-11 left-4 w-12 h-12 rounded-full object-cover z-10" style={{ boxShadow: "var(--shadow-rised)" }} />
+      <img src="/illustrations/avatar-ivan.svg" alt="Iván" className="absolute top-11 left-4 w-12 h-12 rounded-full object-cover z-10" style={{ boxShadow: "var(--shadow-rised)" }} />
 
 
       {/* bottom sheet */}

@@ -4,7 +4,9 @@ import type { Opcion, CabifyCategoriaId } from "./engine";
 export interface TripState {
   origen: string;
   destino: string;
-  criterio: "equilibrado" | "rapido" | "barato" | "ecologico";
+  criterio: "equilibrado" | "rapido" | "barato" | "ecologico" | "seguro";
+  destinoLng?: number;
+  destinoLat?: number;
   seleccionada?: Opcion;
   categoriaCabify?: CabifyCategoriaId;
 }
