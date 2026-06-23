@@ -20,37 +20,7 @@ const PREDICCIONES = [
   { tipo: "reciente", titulo: "Aeropuerto Barajas - T2", sub: "Barajas, Madrid" },
 ];
 
-function MadridMap() {
-  // Mapa SVG estilizado tipo grid de calles Madrid
-  return (
-    <svg viewBox="0 0 390 700" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-          <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#e6e6ed" strokeWidth="1" />
-        </pattern>
-        <linearGradient id="mapbg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#f1f0f6" />
-          <stop offset="1" stopColor="#e7e6f0" />
-        </linearGradient>
-      </defs>
-      <rect width="390" height="700" fill="url(#mapbg)" />
-      <rect width="390" height="700" fill="url(#grid)" />
-      {/* avenidas */}
-      <path d="M 0 220 Q 180 200 390 260" stroke="#d4d3df" strokeWidth="12" fill="none" />
-      <path d="M 0 380 Q 195 360 390 420" stroke="#d4d3df" strokeWidth="14" fill="none" />
-      <path d="M 110 0 L 130 700" stroke="#d4d3df" strokeWidth="10" fill="none" />
-      <path d="M 290 0 L 270 700" stroke="#d4d3df" strokeWidth="10" fill="none" />
-      {/* parque retiro */}
-      <ellipse cx="310" cy="340" rx="62" ry="48" fill="#cfe6c8" opacity="0.7" />
-      <text x="290" y="345" fontSize="10" fill="#5a7c4f" fontWeight="700">El Retiro</text>
-      {/* río */}
-      <path d="M 30 0 Q 20 350 60 700" stroke="#c8d9ee" strokeWidth="18" fill="none" />
-      {/* punto usuario */}
-      <circle cx="195" cy="350" r="26" fill="#7145d6" opacity="0.18" />
-      <circle cx="195" cy="350" r="9" fill="#7145d6" stroke="white" strokeWidth="3" />
-    </svg>
-  );
-}
+
 
 function HomePage() {
   const navigate = useNavigate();
