@@ -70,9 +70,9 @@ function Resultados() {
             </button>
             <button
               onClick={() => navigate({ to: "/buscar" })}
-              className="flex-1 text-left bg-field rounded-[8px] px-3 py-2"
+              className="flex-1 min-w-0 text-left bg-field rounded-[8px] px-3 py-2"
             >
-              <div className="text-[12px] text-text-secondary">{trip.origen}</div>
+              <div className="text-[12px] text-text-secondary truncate">{trip.origen}</div>
               <div className="text-[15px] font-medium text-text truncate">→ {trip.destino}</div>
             </button>
           </div>
