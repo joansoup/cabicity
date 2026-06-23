@@ -98,7 +98,7 @@ export function rutaMetro(origen: LngLat, destino: LngLat): MetroRuta | null {
   const aristas: { from: string; arista: Arista }[] = [];
   let cur: string | null = endState;
   while (cur && prev.get(cur)) {
-    const p = prev.get(cur)!;
+    const p: { state: string; arista: Arista } = prev.get(cur)!;
     const fromK = p.state.split("|")[0];
     aristas.unshift({ from: fromK, arista: p.arista });
     cur = p.state;
