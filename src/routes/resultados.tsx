@@ -21,6 +21,7 @@ const CHIPS: { id: Criterio; label: string }[] = [
 // Copy de venta: compara cada opción con la más barata para destacar el valor.
 function fraseVenta(op: Opcion, ref: Opcion | null): string | null {
   if (!ref || op.id === ref.id) return null;
+  if (!op.modos.includes("cabify")) return null;
   const extra = op.precioEur - ref.precioEur;
   const ahorro = Math.round(ref.etaMin - op.etaMin);
   if (extra <= 0.01 || ahorro <= 0) return null;
