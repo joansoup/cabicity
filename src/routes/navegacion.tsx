@@ -207,7 +207,7 @@ function Nav() {
         {/* instrucción actual + lista */}
         <div className="flex-1 flex flex-col bg-surface rounded-t-[24px] -mt-6 relative z-10 overflow-hidden" style={{ boxShadow: "var(--shadow-rised)" }}>
           <div className="p-4 flex gap-3 items-start border-b border-border">
-            <div className="w-12 h-12 rounded-full grid place-items-center flex-shrink-0" style={{ background: `${actual.tramo.color}1a` }}>
+            <div className="w-12 h-12 rounded-full grid place-items-center flex-shrink-0 bg-field">
               <ModoIcon tipo={actual.tramo.tipo} size={26} />
             </div>
             <div className="flex-1">
@@ -226,7 +226,7 @@ function Nav() {
           <ul className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
             {pasos.slice(idx + 1, idx + 5).map((p, i) => (
               <li key={i} className="flex items-center gap-3 p-2 rounded-[8px]">
-                <div className="w-8 h-8 rounded-full grid place-items-center" style={{ background: `${p.tramo.color}1a` }}>
+                <div className="w-8 h-8 rounded-full grid place-items-center bg-field">
                   <ModoIcon tipo={p.tramo.tipo} size={16} />
                 </div>
                 <div className="flex-1 text-[14px] text-text-secondary truncate">{p.paso.instruccion}</div>
