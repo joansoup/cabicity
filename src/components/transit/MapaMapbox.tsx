@@ -299,12 +299,23 @@ export function MapaMapbox({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  // Animar marcador activo cuando cambia
+  // Animar marcador activo cuando cambia (lo crea si aún no existe)
   useEffect(() => {
-    const map = mapRef.current as { easeTo: (o: unknown) => void; getZoom: () => number } | null;
-    const mk = movingMarkerRef.current as { setLngLat: (p: LngLat) => void } | null;
-    if (!map || !mk || !marcadorActivo) return;
-    mk.setLngLat(marcadorActivo);
+    const map = mapRef.current as { easeTo: (o: unknown) => void; getZoom: () => number; addTo?: unknown } | null;
+    const mapboxgl = mapboxRef.current as { Marker: new (o: unknown) => { setLngLat: (p: LngLat) => unknown; addTo: (m: unknown) => unknown } } | null;
+    if (!map || !mapboxgl || !marcadorActivo || !mapLoadedRef.current) return;
+    let mk = movingMarkerRef.current as { setLngLat: (p: LngLat) => void } | null;
+    if (!mk) {
+      const routeColor =
+        getComputedStyle(document.documentElement).getPropertyValue("--route").trim() || "#7145d6";
+      const adv = document.createElement("div");
+      adv.style.cssText = `width:20px;height:20px;border-radius:999px;background:${routeColor};border:4px solid #fff;box-shadow:0 2px 8px rgba(113,69,214,0.45);`;
+      mk = new mapboxgl.Marker({ element: adv, anchor: "center" }) as unknown as { setLngLat: (p: LngLat) => void };
+      (mk as { setLngLat: (p: LngLat) => { addTo: (m: unknown) => unknown } }).setLngLat(marcadorActivo).addTo(map);
+      movingMarkerRef.current = mk;
+    } else {
+      mk.setLngLat(marcadorActivo);
+    }
     map.easeTo({
       center: marcadorActivo,
       duration: 900,
@@ -312,13 +323,30 @@ export function MapaMapbox({
     });
   }, [marcadorActivo]);
 
-  // Animar vehículo cuando cambia su posición o rotación
+  // Animar vehículo cuando cambia su posición o rotación (lo crea si no existe)
   useEffect(() => {
-    const mk = vehiculoMarkerRef.current as { setLngLat: (p: LngLat) => void } | null;
-    if (!mk || !vehiculo) return;
-    mk.setLngLat(vehiculo.pos);
-    if (vehiculoImgRef.current) {
-      vehiculoImgRef.current.style.transform = `rotate(${vehiculo.rotacionDeg ?? 0}deg)`;
+    const map = mapRef.current as unknown;
+    const mapboxgl = mapboxRef.current as { Marker: new (o: unknown) => { setLngLat: (p: LngLat) => unknown; addTo: (m: unknown) => unknown } } | null;
+    if (!map || !mapboxgl || !vehiculo || !mapLoadedRef.current) return;
+    let mk = vehiculoMarkerRef.current as { setLngLat: (p: LngLat) => void } | null;
+    if (!mk) {
+      const wrap = document.createElement("div");
+      const w = vehiculo.tamano ?? 44;
+      wrap.style.cssText = `width:${w}px;height:${w}px;display:grid;place-items:center;`;
+      const img = document.createElement("img");
+      img.src = vehiculo.svgUrl;
+      img.alt = "";
+      img.style.cssText = `width:100%;height:auto;transform:rotate(${vehiculo.rotacionDeg ?? 0}deg);transition:transform 600ms ease;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.25));`;
+      wrap.appendChild(img);
+      vehiculoImgRef.current = img;
+      mk = new mapboxgl.Marker({ element: wrap, anchor: "center" }) as unknown as { setLngLat: (p: LngLat) => void };
+      (mk as { setLngLat: (p: LngLat) => { addTo: (m: unknown) => unknown } }).setLngLat(vehiculo.pos).addTo(map);
+      vehiculoMarkerRef.current = mk;
+    } else {
+      mk.setLngLat(vehiculo.pos);
+      if (vehiculoImgRef.current) {
+        vehiculoImgRef.current.style.transform = `rotate(${vehiculo.rotacionDeg ?? 0}deg)`;
+      }
     }
   }, [vehiculo?.pos, vehiculo?.rotacionDeg]);
 
