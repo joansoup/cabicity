@@ -207,7 +207,7 @@ function Nav() {
         {/* instrucción actual + lista */}
         <div className="flex-1 flex flex-col bg-surface rounded-t-[24px] -mt-6 relative z-10 overflow-hidden" style={{ boxShadow: "var(--shadow-rised)" }}>
           <div className="p-4 flex gap-3 items-start border-b border-border">
-            <div className="w-12 h-12 rounded-full grid place-items-center flex-shrink-0" style={{ background: `${actual.tramo.color}1a` }}>
+            <div className="w-12 h-12 rounded-full grid place-items-center flex-shrink-0 bg-field">
               <ModoIcon tipo={actual.tramo.tipo} size={26} />
             </div>
             <div className="flex-1">
