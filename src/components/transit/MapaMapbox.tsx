@@ -274,6 +274,7 @@ export function MapaMapbox({
             .setLngLat(vehiculo.pos)
             .addTo(map);
         }
+        mapLoadedRef.current = true;
       });
     })();
 
