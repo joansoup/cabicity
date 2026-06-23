@@ -20,6 +20,13 @@ export interface MapaRutaSegmento {
   dashed?: boolean;
 }
 
+export interface MapaVehiculo {
+  pos: LngLat;
+  svgUrl: string;
+  rotacionDeg?: number;
+  tamano?: number; // ancho en px
+}
+
 interface Props {
   centro: LngLat;
   zoom?: number;
@@ -31,6 +38,8 @@ interface Props {
   marcadorActivo?: LngLat;
   /** Marcador de "tu ubicación actual" (punto azul con halo). */
   ubicacionActual?: LngLat;
+  /** Vehículo SVG que se anima al cambiar pos (p.ej. Cabify acercándose). */
+  vehiculo?: MapaVehiculo;
   /** Si hay ruta, ajusta el encuadre a todos sus puntos al montar. */
   fitRuta?: boolean;
   className?: string;
