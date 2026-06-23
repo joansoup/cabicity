@@ -130,3 +130,95 @@ export function getMapboxToken(): string | undefined {
   const t = env.VITE_MAPBOX_TOKEN;
   return t && t.trim() ? t.trim() : FALLBACK_MAPBOX_PK;
 }
+
+// Perfil de Mapbox Directions según el tipo de tramo. Solo enrutamos los modos
+// que realmente usan calles/carriles bici/aceras; los modos de raíl (metro,
+// cercanías, ave) los dejamos con la polilínea sintética.
+function profileFor(tipo: Tramo["tipo"]): "driving-traffic" | "walking" | "cycling" | null {
+  if (tipo === "cabify" || tipo === "bus") return "driving-traffic";
+  if (tipo === "andando") return "walking";
+  if (tipo === "bicimad") return "cycling";
+  return null;
+}
+
+async function fetchDirections(
+  profile: "driving-traffic" | "walking" | "cycling",
+  start: LngLat,
+  end: LngLat,
+  token: string,
+  signal?: AbortSignal
+): Promise<LngLat[] | null> {
+  const coords = `${start[0]},${start[1]};${end[0]},${end[1]}`;
+  const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coords}?geometries=geojson&overview=full&access_token=${token}`;
+  try {
+    const res = await fetch(url, { signal });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      routes?: { geometry?: { coordinates?: [number, number][] } }[];
+    };
+    const c = data.routes?.[0]?.geometry?.coordinates;
+    if (!c || c.length < 2) return null;
+    return c as LngLat[];
+  } catch {
+    return null;
+  }
+}
+
+// Sustituye las polilíneas sintéticas por rutas reales obtenidas de Mapbox
+// Directions para cada segmento "ruteable" (cabify, bus, andando, bicimad).
+// Reconstruye `flat` y reposiciona `stepPositions` proporcionalmente.
+export async function snapRouteGeoToRoads(
+  geo: RouteGeo,
+  op: Opcion,
+  signal?: AbortSignal
+): Promise<RouteGeo> {
+  const token = getMapboxToken();
+  if (!token) return geo;
+
+  const newSegments = await Promise.all(
+    geo.segments.map(async (seg) => {
+      const profile = profileFor(seg.tipo);
+      if (!profile) return seg;
+      const start = seg.coords[0];
+      const end = seg.coords[seg.coords.length - 1];
+      const snapped = await fetchDirections(profile, start, end, token, signal);
+      if (!snapped) return seg;
+      return { ...seg, coords: snapped };
+    })
+  );
+
+  // Reconstruir flat y stops a partir de los nuevos segmentos.
+  const flat: LngLat[] = [];
+  const stops: LngLat[] = [];
+  newSegments.forEach((s, i) => {
+    if (i === 0) {
+      flat.push(s.coords[0]);
+      stops.push(s.coords[0]);
+    }
+    for (let k = 1; k < s.coords.length; k++) flat.push(s.coords[k]);
+    stops.push(s.coords[s.coords.length - 1]);
+  });
+
+  // Posiciones por paso (mismo criterio que buildRouteGeo).
+  const totalDur = op.tramos.reduce((s, t) => s + t.duracionMin, 0) || 1;
+  let acc = 0;
+  const stepPositions: LngLat[] = [];
+  op.tramos.forEach((t) => {
+    t.pasos.forEach((p) => {
+      acc += p.duracionMin;
+      const frac = Math.min(1, acc / totalDur);
+      const idx = Math.min(flat.length - 1, Math.max(0, Math.round(frac * (flat.length - 1))));
+      stepPositions.push(flat[idx]);
+    });
+  });
+
+  return {
+    origen: flat[0] ?? geo.origen,
+    destino: flat[flat.length - 1] ?? geo.destino,
+    segments: newSegments,
+    stops,
+    flat,
+    stepPositions,
+  };
+}
+

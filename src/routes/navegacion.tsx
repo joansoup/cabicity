@@ -8,7 +8,8 @@ import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
 import { ModoIcon } from "@/components/transit/ModoIcon";
 import { MetroLineBadge, extractMetroLinea, CercaniasLineBadge, extractCercaniasLinea } from "@/components/transit/MetroLineBadge";
 import type { Paso, Tramo } from "@/lib/transit/engine";
-import { buildRouteGeo, type LngLat } from "@/lib/transit/routeGeo";
+import { type LngLat } from "@/lib/transit/routeGeo";
+import { useSnappedRoute } from "@/lib/transit/useSnappedRoute";
 import { MapaMapbox, type MapaRutaSegmento, type MapaMarcador } from "@/components/transit/MapaMapbox";
 import { speakRosalia } from "@/lib/tts.functions";
 
@@ -93,10 +94,7 @@ function Nav() {
   };
 
   const op = trip?.seleccionada;
-  const geo = useMemo(
-    () => (op ? buildRouteGeo(op, trip?.destino || op.id) : null),
-    [op, trip?.destino]
-  );
+  const geo = useSnappedRoute(op, trip?.destino);
 
   const rutaSegmentos: MapaRutaSegmento[] = useMemo(
     () =>
