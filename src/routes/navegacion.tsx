@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Volume2, VolumeX, ChevronRight, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Volume2, VolumeX, ChevronRight } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
 import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
@@ -35,7 +35,6 @@ function Nav() {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("ct-voz") === "1";
   });
-  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const t = getTrip();
@@ -64,13 +63,9 @@ function Nav() {
 
   useEffect(() => {
     if (!actual || llegado) return;
+    // Narra el paso actual al cambiar. El avance es MANUAL ("Siguiente paso"),
+    // para seguir el viaje en vivo, sin completarlo en segundos.
     decir(actual.paso.instruccion);
-    // avanza automáticamente proporcional a la duración (escalado para demo)
-    const ms = Math.max(2500, Math.min(8000, actual.paso.duracionMin * 600));
-    timerRef.current = window.setTimeout(() => next(), ms);
-    return () => {
-      if (timerRef.current) window.clearTimeout(timerRef.current);
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idx, llegado, voz]);
 
@@ -125,9 +120,7 @@ function Nav() {
       <PhoneFrame>
         <div className="absolute inset-0 flex flex-col bg-bg p-5 gap-4 overflow-y-auto">
           <div className="flex items-center justify-center pt-6">
-            <div className="w-20 h-20 rounded-full bg-eco-bg grid place-items-center">
-              <Sparkles size={40} className="text-eco-text" />
-            </div>
+            <img src="/illustrations/arrival-thumbsup.svg" alt="" className="w-44 h-auto" />
           </div>
           <h1 className="text-[24px] font-bold text-center">Has llegado a tu destino</h1>
           <p className="text-center text-text-secondary text-[15px]">{trip.destino}</p>

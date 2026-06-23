@@ -20,7 +20,7 @@ const COLOR: Record<ModoTipo, string> = {
 // Logos/iconos reales por modo (SVG en /public). AVE no tiene logo propio aquí,
 // usa un icono lucide. Metro/Cercanías/EMT usan los logotipos oficiales.
 const SRC: Partial<Record<ModoTipo, string>> = {
-  cabify: "/icons/ic_cabify.svg",
+  cabify: "/logos/cabify.svg",
   metro: "/logos/metro.svg",
   cercanias: "/logos/cercanias.svg",
   bus: "/logos/emt.svg",

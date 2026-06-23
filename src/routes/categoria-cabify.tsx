@@ -53,10 +53,7 @@ function CategoriaCabify() {
         {/* Método de pago */}
         <div className="px-4 pb-3">
           <button className="w-full flex items-center gap-3 border border-border rounded-[14px] px-3 py-3">
-            <div className="w-9 h-6 rounded grid place-items-center bg-white">
-              <span className="block w-4 h-4 rounded-full bg-[#eb001b] -mr-1.5" />
-              <span className="block w-4 h-4 rounded-full bg-[#f79e1b] opacity-90" />
-            </div>
+            <img src="/logos/mastercard.svg" alt="Mastercard" className="w-9 h-6 object-contain" />
             <div className="flex-1 text-left text-[15px] text-text">···· 7892</div>
             <ChevronRight size={20} className="text-brand" />
           </button>
@@ -104,7 +101,7 @@ function CategoriaCabify() {
                         Te recogerá en {2 + c.etaExtraMin} min
                       </div>
                     </div>
-                    <CarIlustracion />
+                    <img src={c.img} alt={c.nombre} className="w-[92px] h-[64px] shrink-0 object-contain" />
                   </div>
                 ) : (
                   <div>
@@ -153,18 +150,3 @@ function CategoriaCabify() {
   );
 }
 
-function CarIlustracion() {
-  return (
-    <div className="w-[88px] h-[60px] shrink-0 grid place-items-center">
-      <svg viewBox="0 0 88 60" width="88" height="60" aria-hidden="true">
-        <ellipse cx="44" cy="52" rx="34" ry="3" fill="#000" opacity="0.08" />
-        <path d="M14 42 L22 24 Q26 18 34 17 L58 17 Q66 18 70 24 L78 42 Z" fill="#7145d6" />
-        <path d="M28 26 Q31 21 36 21 L56 21 Q61 21 64 26 L67 33 L25 33 Z" fill="#8fd5ff" />
-        <circle cx="28" cy="44" r="7" fill="#1b1238" />
-        <circle cx="28" cy="44" r="3" fill="#7145d6" />
-        <circle cx="64" cy="44" r="7" fill="#1b1238" />
-        <circle cx="64" cy="44" r="3" fill="#7145d6" />
-      </svg>
-    </div>
-  );
-}

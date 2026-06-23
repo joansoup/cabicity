@@ -74,19 +74,20 @@ export function distanciaPara(destino: string): number {
 // Multiplicador sobre el precio base. La más barata (Eco) se usa al mostrar
 // el precio de Cabify en /resultados y /viaje; en /categoria-cabify el usuario
 // elige la concreta antes de iniciar la navegación.
-export type CabifyCategoriaId = "eco" | "estandar" | "mujer" | "xl";
+export type CabifyCategoriaId = "eco" | "electric" | "estandar" | "group";
 export interface CabifyCategoria {
   id: CabifyCategoriaId;
   nombre: string;
   descripcion: string;
   multiplicador: number;
   etaExtraMin: number;
+  img: string;
 }
 export const CABIFY_CATEGORIAS: CabifyCategoria[] = [
-  { id: "eco",      nombre: "Cabify Eco",      descripcion: "100% eléctrico, la opción más económica", multiplicador: 0.88, etaExtraMin: 1 },
-  { id: "estandar", nombre: "Cabify",          descripcion: "Coche estándar para hasta 4 personas",    multiplicador: 1.00, etaExtraMin: 0 },
-  { id: "mujer",    nombre: "Cabify Mujer",    descripcion: "Conductoras mujeres, para pasajeras",     multiplicador: 1.00, etaExtraMin: 3 },
-  { id: "xl",       nombre: "Cabify XL",       descripcion: "Hasta 6 plazas o equipaje extra",         multiplicador: 1.45, etaExtraMin: 2 },
+  { id: "eco",      nombre: "Cabify Eco",      descripcion: "100% eléctrico, la opción más económica", multiplicador: 0.88, etaExtraMin: 1, img: "/illustrations/cat-eco.svg" },
+  { id: "electric", nombre: "Cabify Electric", descripcion: "Vehículo 100% eléctrico",                 multiplicador: 1.08, etaExtraMin: 2, img: "/illustrations/cat-electric.svg" },
+  { id: "estandar", nombre: "Cabify",          descripcion: "Coche estándar para hasta 4 personas",    multiplicador: 1.00, etaExtraMin: 0, img: "/illustrations/cabify.svg" },
+  { id: "group",    nombre: "Cabify Group",    descripcion: "Hasta 6 plazas o equipaje extra",         multiplicador: 1.45, etaExtraMin: 2, img: "/illustrations/cat-group.svg" },
 ];
 const CHEAPEST_CABIFY_MULTI = Math.min(...CABIFY_CATEGORIAS.map((c) => c.multiplicador));
 

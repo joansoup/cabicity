@@ -130,7 +130,7 @@ function Resultados() {
               {op.puntos > 0 && (
                 <div className="self-start bg-cashback-bg text-cashback-text rounded-full pl-1.5 pr-3 py-1 text-[12px] font-bold flex items-center gap-1.5">
                   <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-4 h-4" />
-                  +{op.puntos} puntos Club
+                  +{op.puntos} puntos Cabify Club
                 </div>
               )}
 

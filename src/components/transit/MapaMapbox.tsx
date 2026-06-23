@@ -68,9 +68,9 @@ function aplicarEstiloCabify(map: { getStyle: () => { layers?: { id: string; typ
       if (l.type === "background") map.setPaintProperty(id, "background-color", "#f3f3f7");
       else if (l.type === "fill") {
         if (/water/i.test(id)) map.setPaintProperty(id, "fill-color", "#b0e5fe");
-        else if (/(park|green|grass|wood|landcover|pitch|golf|cemetery|scrub)/i.test(id)) map.setPaintProperty(id, "fill-color", "#c4eba8");
+        else if (/(park|green|grass|wood|landcover|pitch|golf|cemetery|scrub|garden|recreation|forest|national|vegetation|farmland)/i.test(id)) map.setPaintProperty(id, "fill-color", "#c4eba8");
         else if (/building/i.test(id)) map.setPaintProperty(id, "fill-color", "#e9eaf1");
-        else if (/(land|earth)/i.test(id)) map.setPaintProperty(id, "fill-color", "#f3f3f7");
+        // (no agrisamos el resto: dejamos el claro por defecto del estilo light)
       } else if (l.type === "line") {
         if (/water/i.test(id)) map.setPaintProperty(id, "line-color", "#b0e5fe");
         else if (/(motorway|trunk|highway)/i.test(id)) map.setPaintProperty(id, "line-color", "#c0c2d8");
@@ -176,8 +176,8 @@ export function MapaMapbox({
               layout: { "line-cap": "round", "line-join": "round" },
               paint: {
                 "line-color": "#ffffff",
-                "line-width": 8,
-                "line-opacity": 0.95,
+                "line-width": 10,
+                "line-opacity": 1,
               },
             });
             map.addLayer({
@@ -187,7 +187,7 @@ export function MapaMapbox({
               layout: { "line-cap": "round", "line-join": "round" },
               paint: {
                 "line-color": seg.color || routeColor,
-                "line-width": 5,
+                "line-width": 6,
                 ...(seg.dashed ? { "line-dasharray": [1.2, 1.6] } : {}),
               },
             });

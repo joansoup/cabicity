@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, MapPin, Circle, Square, Clock, Home } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, setTrip } from "@/lib/transit/store";
+import { getMapboxToken } from "@/lib/transit/routeGeo";
 
 export const Route = createFileRoute("/buscar")({
   component: BuscarPage,
@@ -17,30 +18,44 @@ const RECIENTES = [
   { tipo: "reciente", titulo: "AVE Madrid - Sevilla", sub: "Estación Madrid Atocha" },
 ];
 
-// Lugares para el autocompletado del destino (se filtran según escribes).
-const PLACES = [
-  ...RECIENTES,
-  { tipo: "reciente", titulo: "Puerta del Sol", sub: "Puerta del Sol, Madrid" },
-  { tipo: "reciente", titulo: "Estadio Santiago Bernabéu", sub: "Av. de Concha Espina, 1" },
-  { tipo: "reciente", titulo: "Estación de Atocha", sub: "Atocha, Madrid" },
-  { tipo: "reciente", titulo: "Estación de Chamartín", sub: "Chamartín, Madrid" },
-  { tipo: "reciente", titulo: "Gran Vía", sub: "Gran Vía, Madrid" },
-  { tipo: "reciente", titulo: "Parque del Retiro", sub: "Plaza de la Independencia, Madrid" },
-  { tipo: "reciente", titulo: "IFEMA", sub: "Av. del Partenón, 5, Madrid" },
-  { tipo: "reciente", titulo: "Nuevos Ministerios", sub: "Paseo de la Castellana, Madrid" },
-  { tipo: "reciente", titulo: "AVE Madrid - Barcelona", sub: "Barcelona Sants" },
-  { tipo: "reciente", titulo: "Toledo", sub: "Toledo centro" },
-];
+type Sug = { tipo: string; titulo: string; sub: string };
 
 function BuscarPage() {
   const navigate = useNavigate();
   const [origen, setOrigen] = useState("");
   const [destino, setDestino] = useState("");
+  const [sugerencias, setSugerencias] = useState<Sug[]>(RECIENTES);
+  const [eligiendo, setEligiendo] = useState(false);
 
-  const q = destino.trim().toLowerCase();
-  const sugerencias = q
-    ? PLACES.filter((p) => `${p.titulo} ${p.sub}`.toLowerCase().includes(q)).slice(0, 6)
-    : RECIENTES;
+  // Autocompletado real de destino con la API de geocoding de Mapbox (como en
+  // cualquier app de viajes): sugiere lugares reales según escribes.
+  useEffect(() => {
+    if (eligiendo) { setEligiendo(false); return; }
+    const q = destino.trim();
+    if (q.length < 2) { setSugerencias(RECIENTES); return; }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        const token = getMapboxToken();
+        const url =
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json` +
+          `?access_token=${token}&autocomplete=true&country=es&language=es&limit=6` +
+          `&proximity=-3.6736,40.4445&types=address,poi,place,locality,neighborhood`;
+        const res = await fetch(url, { signal: ctrl.signal });
+        const data = await res.json();
+        const feats: Sug[] = (data.features || []).map(
+          (f: { text?: string; place_name?: string }) => ({
+            tipo: "reciente",
+            titulo: f.text || f.place_name || "",
+            sub: f.place_name || "",
+          })
+        );
+        if (feats.length) setSugerencias(feats);
+      } catch { /* abortado o sin red: mantenemos lo que haya */ }
+    }, 250);
+    return () => { clearTimeout(t); ctrl.abort(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [destino]);
 
   useEffect(() => {
     const t = getTrip();
@@ -93,7 +108,7 @@ function BuscarPage() {
           {sugerencias.map((p, i) => (
             <li key={i}>
               <button
-                onClick={() => { setDestino(p.titulo); }}
+                onClick={() => { setEligiendo(true); setDestino(p.sub || p.titulo); }}
                 className="w-full p-3 rounded-[8px] flex items-center gap-4 text-left hover:bg-field"
               >
                 <span className="w-9 h-9 rounded-[8px] grid place-items-center" style={{
