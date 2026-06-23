@@ -143,7 +143,39 @@ function Nav() {
   const progreso = Math.round((idx / Math.max(1, pasos.length - 1)) * 100);
 
   if (llegado) {
-...
+    return (
+      <PhoneFrame>
+        <div className="absolute inset-0 flex flex-col bg-bg p-5 gap-4 overflow-y-auto">
+          <div className="flex items-center justify-center pt-6">
+            <img src="/illustrations/arrival-thumbsup.svg" alt="" className="w-44 h-auto" />
+          </div>
+          <h1 className="text-[24px] font-bold text-center">Has llegado a tu destino</h1>
+          <p className="text-center text-text-secondary text-[15px]">{trip.destino}</p>
+
+          {op.puntos > 0 && (
+            <div className="bg-cashback-bg text-cashback-text rounded-[24px] p-5 flex flex-col items-center gap-1 mt-2">
+              <div className="text-[13px] font-bold uppercase tracking-wide flex items-center gap-1.5">
+                <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-4 h-4" /> Cabify Club
+              </div>
+              <div className="text-[40px] font-bold leading-none">+{op.puntos}</div>
+              <div className="text-[13px]">puntos para canjear en la app</div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            <Stat label="Tiempo" value={fmtMin(op.etaMin)} />
+            <Stat label="Pagado" value={fmtEur(op.precioEur)} />
+            <Stat label="CO₂ ahorrado" value={fmtCo2(ahorroCo2)} highlight />
+          </div>
+
+          <button
+            onClick={() => { clearTrip(); navigate({ to: "/" }); }}
+            className="mt-auto w-full h-12 rounded-[16px] bg-brand text-white font-bold text-[16px]"
+          >
+            Volver al inicio
+          </button>
+        </div>
+      </PhoneFrame>
     );
   }
 
