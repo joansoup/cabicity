@@ -59,7 +59,7 @@ function MapaFallback({ className }: { className?: string }) {
 // Recolorea el estilo base de Mapbox hacia la paleta del mapa de Cabify.
 // (El estilo original es un JSON de Google Maps, que Mapbox no acepta; aquí
 // trasladamos su paleta a las capas del estilo light de Mapbox.)
-function aplicarEstiloCabify(map: { getStyle: () => { layers?: { id: string; type: string }[] }; setPaintProperty: (id: string, prop: string, val: unknown) => void }) {
+function aplicarEstiloCabify(map: any) {
   let layers: { id: string; type: string }[] = [];
   try { layers = map.getStyle()?.layers || []; } catch { return; }
   for (const l of layers) {
