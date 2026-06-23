@@ -195,25 +195,42 @@ function Nav() {
     if (!geo || llegado || actual?.tramo.tipo !== "cabify") { setCarPos(null); return; }
     const seg = geo.segments[actual.tramoIdx];
     if (!seg || seg.coords.length < 2) return;
-    const pts = seg.coords;
-    const segLens: number[] = [];
-    let total = 0;
-    for (let i = 1; i < pts.length; i++) { const d = distAprox(pts[i - 1], pts[i]); segLens.push(d); total += d; }
+    const pts = seg.coords as LngLat[];
+    const cum: number[] = [0];
+    for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + distAprox(pts[i - 1], pts[i]));
+    const total = cum[cum.length - 1];
     if (total <= 0) return;
-    // Ritmo "de demo": recorre el tramo en 12–28 s, según su duración.
-    const durMs = Math.min(28000, Math.max(12000, (actual.paso.duracionMin || 10) * 1100));
+
+    // Posición sobre la polilínea a una distancia dada (interpolación lineal).
+    const posAtDist = (d: number): LngLat => {
+      const dd = Math.max(0, Math.min(total, d));
+      let i = 0;
+      while (i < cum.length - 2 && cum[i + 1] < dd) i++;
+      const segLen = cum[i + 1] - cum[i] || 1;
+      const f = (dd - cum[i]) / segLen;
+      const a = pts[i], b = pts[i + 1] ?? pts[i];
+      return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+    };
+
+    // Ritmo realista y calmado: recorre el tramo en 16–40 s según su duración.
+    const durMs = Math.min(40000, Math.max(16000, (actual.paso.duracionMin || 10) * 1700));
+    const LOOKAHEAD = Math.max(total * 0.06, 0.0006); // mirar ~adelante para suavizar el rumbo
     const t0 = performance.now();
     setCarPos(pts[0]);
-    carRotRef.current = rumboDeg(pts[0], pts[1]);
+    carRotRef.current = rumboDeg(posAtDist(0), posAtDist(LOOKAHEAD));
+    let rot = carRotRef.current;
+
     const id = setInterval(() => {
       const t = Math.min(1, (performance.now() - t0) / durMs);
-      const target = t * total;
-      let acc = 0, i = 0;
-      while (i < segLens.length - 1 && acc + segLens[i] < target) { acc += segLens[i]; i++; }
-      const f = segLens[i] ? Math.min(1, (target - acc) / segLens[i]) : 0;
-      const a = pts[i], b = pts[i + 1] ?? pts[i];
-      setCarPos([a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]);
-      carRotRef.current = rumboDeg(a, b);
+      const d = t * total;
+      const pos = posAtDist(d);
+      setCarPos(pos);
+      // Rumbo suavizado: hacia un punto por delante (no al vértice inmediato),
+      // y con filtro de paso bajo + camino angular más corto (sin giros bruscos).
+      const target = rumboDeg(pos, posAtDist(d + LOOKAHEAD));
+      let delta = ((target - rot + 540) % 360) - 180;
+      rot += delta * 0.18;
+      carRotRef.current = rot;
       if (t >= 1) {
         clearInterval(id);
         if (idx >= pasos.length - 1) { setLlegado(true); decir("Has llegado a tu destino"); }

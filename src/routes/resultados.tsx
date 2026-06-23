@@ -122,7 +122,7 @@ function Resultados() {
                   {op.modos.map((m, i) => (
                     <span key={i} className="flex items-center gap-1">
                       {i > 0 && <Plus size={12} className="text-text-secondary" />}
-                      <ModoIcon tipo={m} size={20} />
+                      <ModoIcon tipo={m} size={m === "ave" ? 13 : 20} />
                     </span>
                   ))}
                 </div>

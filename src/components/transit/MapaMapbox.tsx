@@ -246,7 +246,7 @@ export function MapaMapbox({
           const img = document.createElement("img");
           img.src = vehiculo.svgUrl;
           img.alt = "";
-          img.style.cssText = `width:100%;height:auto;transform:rotate(${vehiculo.rotacionDeg ?? 0}deg);transition:transform 600ms ease;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.25));`;
+          img.style.cssText = `width:100%;height:auto;transform:rotate(${vehiculo.rotacionDeg ?? 0}deg);transition:transform 150ms linear;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.25));`;
           wrap.appendChild(img);
           vehiculoImgRef.current = img;
           vehiculoMarkerRef.current = new mapboxgl.Marker({ element: wrap, anchor: "center" })
@@ -316,7 +316,7 @@ export function MapaMapbox({
       const img = document.createElement("img");
       img.src = vehiculo.svgUrl;
       img.alt = "";
-      img.style.cssText = `width:100%;height:auto;transform:rotate(${vehiculo.rotacionDeg ?? 0}deg);transition:transform 600ms ease;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.25));`;
+      img.style.cssText = `width:100%;height:auto;transform:rotate(${vehiculo.rotacionDeg ?? 0}deg);transition:transform 150ms linear;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.25));`;
       wrap.appendChild(img);
       vehiculoImgRef.current = img;
       mk = new mapboxgl.Marker({ element: wrap, anchor: "center" }) as unknown as { setLngLat: (p: LngLat) => void };
