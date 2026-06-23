@@ -1,0 +1,20 @@
+He añadido el Design System real de Cabify al proyecto. Intégralo así:
+
+1. He puesto los tokens en `src/styles/cabify-tokens.css`. Impórtalo como PRIMERA
+   línea de `src/index.css`:  @import "./styles/cabify-tokens.css";
+2. Las fuentes están en `public/fonts/` (Cabify Circular). El @font-face ya viene en
+   el CSS. Usa la familia var(--font-cabify) como fuente por defecto de toda la app.
+3. Los iconos reales están en `public/icons/` (úsalos como <img src="/icons/...">).
+4. Mapea estos tokens semánticos en tailwind.config.ts (theme.extend) y ÚSALOS siempre,
+   nunca colores hardcodeados:
+   - colores: bg, bg-subdued, surface, field, text, text-secondary, brand (#7145d6),
+     brand-subtle, on-brand, border, eco-bg, eco-text, cashback-bg, cashback-text, route
+   - radios: field=8px, card=16px, sheet=24px
+   - sombras: resting, rised, over
+5. Tipografía: body = 450 16/24 con letter-spacing -0.01em; títulos = 700.
+
+REGLA: todo color, radio, sombra y tipografía debe salir de estos tokens. Si necesitas
+iconos de transporte público que no están en /public/icons (metro, tren, cercanías, bus),
+usa lucide-react: TramFront (metro), TrainFront (tren), TrainFrontTunnel (cercanías), Bus.
+
+No cambies los valores de cabify-tokens.css; es la fuente de verdad del branding.
