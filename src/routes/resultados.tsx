@@ -8,7 +8,7 @@ import { fmtEur, fmtMin, fmtCo2, fmtEurCashback } from "@/lib/transit/format";
 import { ModoIcon } from "@/components/transit/ModoIcon";
 
 export const Route = createFileRoute("/resultados")({
-  component: Resultados as unknown as () => JSX.Element,
+  component: Resultados,
 });
 
 const CHIPS: { id: Criterio; label: string }[] = [

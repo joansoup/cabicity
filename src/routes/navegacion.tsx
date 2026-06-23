@@ -8,7 +8,7 @@ import { ModoIcon, modoColor } from "@/components/transit/ModoIcon";
 import type { Paso, Tramo } from "@/lib/transit/engine";
 
 export const Route = createFileRoute("/navegacion")({
-  component: Nav as unknown as () => JSX.Element,
+  component: Nav,
 });
 
 interface PasoPlano {

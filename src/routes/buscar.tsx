@@ -5,7 +5,7 @@ import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, setTrip } from "@/lib/transit/store";
 
 export const Route = createFileRoute("/buscar")({
-  component: BuscarPage as unknown as () => JSX.Element,
+  component: BuscarPage,
 });
 
 const RECIENTES = [

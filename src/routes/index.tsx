@@ -10,7 +10,7 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Comparador intermodal de Cabify en Madrid." },
     ],
   }),
-  component: Home as unknown as () => JSX.Element,
+  component: HomePage,
 });
 
 const PREDICCIONES = [
@@ -51,7 +51,7 @@ function MadridMap() {
   );
 }
 
-function Home() {
+function HomePage() {
   const navigate = useNavigate();
 
   const goSearch = (destino?: string) => {
