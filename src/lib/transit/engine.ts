@@ -76,6 +76,13 @@ const MODOS = {
   bus:       { speed: 14,  price: () => 1.5,                     co2: 0.08,  avail: (d: number) => d < 30, color: "#bf2721", icono: "lucide:Bus" },
 } as const;
 
+// Modos sostenibles: a pie, bici pública y transporte público/ferroviario.
+// Cabify (coche con conductor) NO es sostenible y nunca genera cashback.
+const SOSTENIBLE: Record<ModoTipo, boolean> = {
+  andando: true, bicimad: true, metro: true, cercanias: true, ave: true, bus: true, cabify: false,
+};
+
+// Cashback en € por km del tramo sostenible. Los modos no sostenibles deben quedarse en 0.
 const CASHBACK: Record<ModoTipo, number> = {
   andando: 0.25, bicimad: 0.15, metro: 0.1, cercanias: 0.1, bus: 0.1, ave: 0.05, cabify: 0,
 };
@@ -208,7 +215,11 @@ function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
   const precio = round2(m.price(distKm));
   const co2 = round2(m.co2 * distKm);
   const interurbano = distKm > 60;
-  const cashback = round2(capCashback(CASHBACK[tipo] * distKm, interurbano));
+  const esSostenible = SOSTENIBLE[tipo];
+  // Solo modos sostenibles generan cashback.
+  const cashback = esSostenible
+    ? round2(capCashback(CASHBACK[tipo] * distKm, interurbano))
+    : 0;
   let tramos: Tramo[];
   if (tipo === "cabify") {
     tramos = [tramoCabify(distKm, "Cabify directo a destino", "Trayecto en Cabify hasta tu destino")];
@@ -229,7 +240,7 @@ function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
   return {
     id: `simple-${tipo}`, tipo: "simple", nombre: NOMBRES[tipo], modos: [tipo], tramos,
     etaMin: eta, precioEur: precio, co2Kg: co2, cashbackEur: cashback,
-    esSostenible: tipo !== "cabify",
+    esSostenible,
   };
 }
 
@@ -270,14 +281,17 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
       tramos.push(t);
       publicoPrecio += MODOS[m].price(principalKm);
       publicoCo2 += MODOS[m].co2 * principalKm;
-      cashback += CASHBACK[m] * principalKm;
+      // Solo los tramos sostenibles aportan cashback.
+      if (SOSTENIBLE[m]) cashback += CASHBACK[m] * principalKm;
     }
   });
 
   const fee = modos.includes("ave") ? 4 : 0.5;
   const precio = round2(cabifyPrecio + publicoPrecio + fee);
   const co2 = round2(cabifyCo2 + publicoCo2);
-  cashback = round2(capCashback(cashback, interurbano));
+  // Una ruta es sostenible si al menos un tramo lo es; si no, no hay cashback.
+  const esSostenible = modos.some((m) => SOSTENIBLE[m]);
+  cashback = esSostenible ? round2(capCashback(cashback, interurbano)) : 0;
   const eta = tramos.reduce((s, t) => s + t.duracionMin, 0) + transbordos * 8;
 
   // insertar tramos de transbordo a pie ligeros (representativos)
@@ -294,7 +308,7 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
   return {
     id: `combo-${idSuffix}`, tipo: "combo", nombre, modos, tramos,
     etaMin: eta, precioEur: precio, co2Kg: co2, cashbackEur: cashback,
-    desglose, esSostenible: true,
+    desglose, esSostenible,
   };
 }
 
