@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ChevronRight, Calendar, Info } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, setTrip, type TripState } from "@/lib/transit/store";
-import { categoriasParaOpcion, CABIFY_CATEGORIAS, type CabifyCategoriaId } from "@/lib/transit/engine";
+import { categoriasParaOpcion, type CabifyCategoriaId } from "@/lib/transit/engine";
 import { fmtEur } from "@/lib/transit/format";
 
 export const Route = createFileRoute("/categoria-cabify")({
