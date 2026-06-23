@@ -229,6 +229,8 @@ function Nav() {
           <div className="p-4 flex gap-3 items-start border-b border-border">
             {actual.tramo.tipo === "metro" && extractMetroLinea(actual.tramo.titulo) ? (
               <MetroLineBadge linea={extractMetroLinea(actual.tramo.titulo)!} size={48} />
+            ) : actual.tramo.tipo === "cercanias" && extractCercaniasLinea(actual.tramo.titulo) ? (
+              <CercaniasLineBadge linea={extractCercaniasLinea(actual.tramo.titulo)!} size={48} />
             ) : (
               <div className="w-12 h-12 rounded-full grid place-items-center flex-shrink-0 bg-field">
                 <ModoIcon tipo={actual.tramo.tipo} size={26} />
