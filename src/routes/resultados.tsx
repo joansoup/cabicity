@@ -129,14 +129,11 @@ function Resultados() {
                 </div>
               )}
 
-              {(() => {
-                const v = fraseVenta(op, metroRef);
-                return v ? (
-                  <div className="self-start bg-eco-bg text-eco-text rounded-full px-3 py-1 text-[12px] font-bold">
-                    {v}
-                  </div>
-                ) : null;
-              })()}
+              {op.id === fastestId && (
+                <div className="self-start bg-eco-bg text-eco-text rounded-full px-3 py-1 text-[12px] font-bold">
+                  Opción más rápida
+                </div>
+              )}
 
               {op.desglose && (
                 <div className="text-[12px] text-text-secondary">{op.desglose}</div>
