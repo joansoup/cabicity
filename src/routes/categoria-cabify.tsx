@@ -133,7 +133,7 @@ function CategoriaCabify() {
           <div className="flex items-center gap-2">
             <button
               onClick={continuar}
-              className="flex-1 h-12 rounded-[16px] bg-brand text-white font-bold text-[16px]"
+              className="flex-1 h-12 rounded-[8px] bg-brand text-white font-bold text-[16px]"
             >
               Pedir ahora
             </button>
