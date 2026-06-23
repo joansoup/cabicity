@@ -207,6 +207,16 @@ function Nav() {
             <div className="text-[13px] font-bold">{fmtMin(restante)} restantes</div>
           </div>
 
+          {op.puntos > 0 && (
+            <div className="mx-4 mt-3 mb-1 rounded-[16px] bg-cashback-bg text-cashback-text px-3.5 py-2.5 flex items-center gap-2.5">
+              <img src="/icons/ic_cabify_club_spark_color.svg" alt="" className="w-5 h-5 flex-shrink-0" />
+              <div className="text-[13px] leading-tight">
+                Ganarás <span className="font-bold">+{op.puntos} puntos</span> Cabify Club al completar este viaje
+              </div>
+            </div>
+          )}
+
+
           <ul className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
             {pasos.slice(idx + 1, idx + 5).map((p, i) => (
               <li key={i} className="flex items-center gap-3 p-2 rounded-[8px]">
@@ -214,7 +224,7 @@ function Nav() {
                   <ModoIcon tipo={p.tramo.tipo} size={16} />
                 </div>
                 <div className="flex-1 text-[14px] text-text-secondary truncate">{p.paso.instruccion}</div>
-                <div className="text-[12px] text-text-secondary">{fmtMin(p.paso.duracionMin)}</div>
+                <span className="text-[15px] font-bold text-text">{fmtMin(p.paso.duracionMin)}</span>
               </li>
             ))}
           </ul>
