@@ -56,10 +56,7 @@ function RecogidaCabify() {
     return cats.find((c) => c.id === trip?.categoriaCabify) ?? cats[0];
   }, [op, trip?.categoriaCabify]);
 
-  const geo = useMemo(
-    () => (op ? buildRouteGeo(op, trip?.destino || op.id) : null),
-    [op, trip?.destino]
-  );
+  const geo = useSnappedRoute(op, trip?.destino);
 
   // Punto de partida del Cabify: a ~0.9 km al noroeste del origen.
   // (Determinista, así no salta entre renders del preview.)
