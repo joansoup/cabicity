@@ -105,6 +105,7 @@ export function MapaMapbox({
   fitRuta = true,
   className,
   interactive = false,
+  paddingBottom = 0,
 }: Props) {
   const token = getMapboxToken();
   const containerRef = useRef<HTMLDivElement>(null);
