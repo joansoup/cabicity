@@ -144,7 +144,7 @@ function HomePage() {
         </div>
 
         {/* pestañas */}
-        <div className="absolute inset-x-0 top-[22px] flex items-start justify-between px-3">
+        <div className="absolute inset-x-0 top-[34px] flex items-start justify-between px-3">
           <NavTab label="Viajar" active svg={IC_VIAJAR} />
           <div className="flex-1 flex justify-center pt-8">
             <span className="text-[11px] font-medium text-text-secondary">Cabify Club</span>
