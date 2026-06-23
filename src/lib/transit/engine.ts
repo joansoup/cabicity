@@ -115,7 +115,7 @@ const MODOS = {
   ave:       { speed: 200, price: (d: number) => 25 + 0.18 * d,  co2: 0.03,  avail: (d: number) => d >= 60, color: "#5b34ac", icono: "lucide:TrainFront" },
   andando:   { speed: 5,   price: () => 0,                       co2: 0,     avail: (d: number) => d < 3,  color: "#5e6088", icono: "/icons/ic_walking.svg" },
   bicimad:   { speed: 13,  price: () => 0.5,                     co2: 0,     avail: (d: number) => d < 8,  color: "#ea8c2e", icono: "/icons/ic_bicycle.svg" },
-  bus:       { speed: 14,  price: () => 1.5,                     co2: 0.08,  avail: (d: number) => d < 30, color: "#bf2721", icono: "lucide:Bus" },
+  bus:       { speed: 14,  price: () => 1.5,                     co2: 0.08,  avail: (d: number) => d < 30, color: "#006eb6", icono: "lucide:Bus" },
 } as const;
 
 // Modos sostenibles: a pie, bici pública y transporte público/ferroviario.
@@ -251,15 +251,23 @@ function tramoBici(distKm: number): Tramo {
   };
 }
 
+// Líneas EMT REALES que dan servicio al entorno del origen (Prosperidad /
+// Av. de América / López de Hoyos / Chamartín). Elegimos una de forma
+// determinista para que el número mostrado sea una línea que existe de verdad.
+const EMT_LINEAS_ORIGEN = ["9", "29", "72", "73", "16", "51", "120", "7"];
+
 function tramoBus(distKm: number, seed: number): Tramo {
-  const linea = (10 + (seed % 140)).toString();
-  const dur = Math.max(8, Math.round((distKm / MODOS.bus.speed) * 60));
+  const linea = EMT_LINEAS_ORIGEN[seed % EMT_LINEAS_ORIGEN.length];
+  // Espera realista según frecuencia de paso (5–11 min) + trayecto por distancia.
+  const espera = 5 + (seed % 7);
+  const viaje = Math.max(6, Math.round((distKm / MODOS.bus.speed) * 60));
+  const dur = espera + viaje;
   return {
-    tipo: "bus", titulo: `Bus EMT línea ${linea}`, subtitulo: "Empresa Municipal de Transportes",
+    tipo: "bus", titulo: `Bus EMT · Línea ${linea}`, subtitulo: "Empresa Municipal de Transportes",
     duracionMin: dur, distanciaKm: distKm, color: MODOS.bus.color, icono: MODOS.bus.icono,
     pasos: [
-      { instruccion: `Espera el bus ${linea}`, duracionMin: 4 },
-      { instruccion: `Trayecto en bus hasta destino`, duracionMin: dur - 4 },
+      { instruccion: `Espera la línea ${linea} en la parada (~${espera} min)`, duracionMin: espera },
+      { instruccion: `Trayecto en la línea ${linea} (${viaje} min)`, duracionMin: viaje },
     ],
   };
 }

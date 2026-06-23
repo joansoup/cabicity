@@ -1,4 +1,3 @@
-import { TrainFront } from "lucide-react";
 import type { ModoTipo } from "@/lib/transit/engine";
 
 interface Props {
@@ -11,18 +10,31 @@ const COLOR: Record<ModoTipo, string> = {
   cabify: "#7145d6",
   metro: "#2760c2",
   cercanias: "#017251",
-  ave: "#5b34ac",
+  ave: "#6b2c91",
   andando: "#5e6088",
   bicimad: "#ea8c2e",
-  bus: "#bf2721",
+  bus: "#006eb6",
 };
 
-// Logos/iconos reales por modo (SVG en /public). AVE no tiene logo propio aquí,
-// usa un icono lucide. Metro/Cercanías/EMT usan los logotipos oficiales.
+// Color de MARCA de cada logo (para teñir los fondos de los chips en consonancia
+// con la identidad real: Metro rojo, EMT azul, Renfe morado, etc.).
+const BRAND: Record<ModoTipo, string> = {
+  cabify: "#7145d6",
+  metro: "#e8112d",
+  cercanias: "#ef2c30",
+  ave: "#6b2c91",
+  andando: "#5e6088",
+  bicimad: "#ea8c2e",
+  bus: "#006eb6",
+};
+
+// Logos/iconos reales por modo (SVG en /public). Metro/Cercanías/EMT/Renfe usan
+// los logotipos oficiales; andando/bici usan iconos del Design System.
 const SRC: Partial<Record<ModoTipo, string>> = {
   metro: "/logos/metro.svg",
   cercanias: "/logos/cercanias.svg",
   bus: "/logos/emt.svg",
+  ave: "/logos/renfe.svg",
   andando: "/icons/ic_walking.svg",
   bicimad: "/icons/ic_bicycle.svg",
 };
@@ -72,21 +84,25 @@ export function ModoIcon({ tipo, size = 20, className }: Props) {
   if (tipo === "cabify") {
     return <CabifyLogo size={size} className={className} />;
   }
-  if (tipo === "ave") {
-    return <TrainFront size={size} color={COLOR.ave} className={className} />;
-  }
   const src = SRC[tipo];
-  // Algunos logos son apaisados (Metro); mantenemos su proporción con height fijo.
+  // Logos apaisados (Metro, Renfe): mantenemos su proporción con height fijo.
+  // El de Renfe es más ancho, así que le damos algo más de margen.
+  const maxW = tipo === "ave" ? size * 2.8 : size * 1.9;
   return (
     <img
       src={src}
       alt={tipo}
       className={className}
-      style={{ height: size, width: "auto", maxWidth: size * 1.9, objectFit: "contain" }}
+      style={{ height: size, width: "auto", maxWidth: maxW, objectFit: "contain" }}
     />
   );
 }
 
 export function modoColor(tipo: ModoTipo): string {
   return COLOR[tipo];
+}
+
+// Fondo tenue del chip, en el color de marca del logo (Metro rojo, EMT azul…).
+export function modoBrandBg(tipo: ModoTipo): string {
+  return `${BRAND[tipo]}1f`;
 }

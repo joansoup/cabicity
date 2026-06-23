@@ -76,18 +76,22 @@ function aplicarEstiloCabify(map: any) {
   for (const l of layers) {
     const id = l.id;
     try {
-      if (l.type === "background") map.setPaintProperty(id, "background-color", "#f3f3f7");
+      if (l.type === "background") map.setPaintProperty(id, "background-color", "#e7e5f0");
       else if (l.type === "fill") {
-        if (/water/i.test(id)) map.setPaintProperty(id, "fill-color", "#b0e5fe");
-        else if (/(landuse|park|green|grass|wood|landcover|pitch|golf|cemetery|scrub|garden|recreation|forest|national|vegetation|farmland)/i.test(id)) {
-          map.setPaintProperty(id, "fill-color", "#bfe3a3");
+        if (/water/i.test(id)) map.setPaintProperty(id, "fill-color", "#a9ddf3");
+        else if (/(park|green|grass|wood|landcover|pitch|golf|cemetery|scrub|garden|recreation|forest|national|vegetation|farmland)/i.test(id)) {
+          map.setPaintProperty(id, "fill-color", "#bfe39e");
           try { map.setPaintProperty(id, "fill-opacity", 1); } catch { /* ignore */ }
         }
-        else if (/building/i.test(id)) map.setPaintProperty(id, "fill-color", "#e9eaf1");
-        // (no agrisamos el resto: dejamos el claro por defecto del estilo light)
+        else if (/landuse/i.test(id)) {
+          // landuse engloba parques y zonas verdes en light-v11: verde suave.
+          map.setPaintProperty(id, "fill-color", "#cce8b4");
+        }
+        else if (/building/i.test(id)) map.setPaintProperty(id, "fill-color", "#efeef6");
+        // (el resto del suelo queda en el lavanda claro del fondo)
       } else if (l.type === "line") {
-        if (/water/i.test(id)) map.setPaintProperty(id, "line-color", "#b0e5fe");
-        else if (/(motorway|trunk|highway)/i.test(id)) map.setPaintProperty(id, "line-color", "#c0c2d8");
+        if (/water/i.test(id)) map.setPaintProperty(id, "line-color", "#a9ddf3");
+        else if (/(motorway|trunk|highway)/i.test(id)) map.setPaintProperty(id, "line-color", "#cfd0e0");
         else if (/(road|street|bridge|tunnel|transit)/i.test(id)) map.setPaintProperty(id, "line-color", "#ffffff");
       } else if (l.type === "symbol") {
         try { map.setPaintProperty(id, "text-color", "#4b4c6a"); } catch { /* sin texto */ }
