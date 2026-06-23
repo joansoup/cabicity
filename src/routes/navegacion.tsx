@@ -8,6 +8,7 @@ import { ModoIcon } from "@/components/transit/ModoIcon";
 import type { Paso, Tramo } from "@/lib/transit/engine";
 import { buildRouteGeo } from "@/lib/transit/routeGeo";
 import { MapaMapbox, type MapaRutaSegmento, type MapaMarcador } from "@/components/transit/MapaMapbox";
+import { generarVozServerFn } from "@/lib/transit/tts";
 
 export const Route = createFileRoute("/navegacion")({
   component: Nav,
@@ -36,6 +37,7 @@ function Nav() {
     return localStorage.getItem("ct-voz") === "1";
   });
   const timerRef = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const t = getTrip();
@@ -50,15 +52,35 @@ function Nav() {
 
   const actual = pasos[idx];
 
-  // voice
-  const decir = (texto: string) => {
-    if (!voz || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  // Asistente de voz: intenta ElevenLabs (vía función de servidor) y, si no hay
+  // API key o falla, cae a la Web Speech API del navegador. Pensado para
+  // escuchar las indicaciones con auriculares sin sacar el móvil.
+  const hablarWebSpeech = (texto: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(texto);
       u.lang = "es-ES";
       window.speechSynthesis.speak(u);
     } catch { /* ignore */ }
+  };
+
+  const decir = (texto: string) => {
+    if (!voz || !texto) return;
+    void (async () => {
+      try {
+        const r = await generarVozServerFn({ data: { texto } });
+        if (r?.audio) {
+          try { window.speechSynthesis?.cancel(); } catch { /* ignore */ }
+          audioRef.current?.pause();
+          const a = new Audio(`data:audio/mpeg;base64,${r.audio}`);
+          audioRef.current = a;
+          await a.play();
+          return;
+        }
+      } catch { /* cae a Web Speech */ }
+      hablarWebSpeech(texto);
+    })();
   };
 
   useEffect(() => {
@@ -185,7 +207,7 @@ function Nav() {
               const nv = !voz;
               setVoz(nv);
               localStorage.setItem("ct-voz", nv ? "1" : "0");
-              if (!nv && typeof window !== "undefined") window.speechSynthesis?.cancel();
+              if (!nv) { try { window.speechSynthesis?.cancel(); } catch { /* ignore */ } audioRef.current?.pause(); }
             }}
             className="absolute top-3 right-3 w-10 h-10 rounded-full bg-surface grid place-items-center z-10"
             style={{ boxShadow: "var(--shadow-rised)" }}
