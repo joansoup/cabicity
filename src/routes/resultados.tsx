@@ -18,18 +18,16 @@ const CHIPS: { id: Criterio; label: string }[] = [
   { id: "ecologico", label: "Ecológico" },
 ];
 
-// Copy de venta: compara cada opción con la más barata para destacar el valor.
-function fraseVenta(op: Opcion, ref: Opcion | null): string | null {
-  if (!ref || op.id === ref.id) return null;
+// Copy de venta para opciones Cabify: compara contra la opción de metro simple
+// para destacar cuánto más cuesta y cuánto tiempo se ahorra.
+function fraseVenta(op: Opcion, metro: Opcion | null): string | null {
+  if (!metro || op.id === metro.id) return null;
   if (!op.modos.includes("cabify")) return null;
-  const extra = op.precioEur - ref.precioEur;
-  const ahorro = Math.round(ref.etaMin - op.etaMin);
+  const extra = op.precioEur - metro.precioEur;
+  const ahorro = Math.round(metro.etaMin - op.etaMin);
   if (extra <= 0.01 || ahorro <= 0) return null;
   const e = `${extra.toFixed(2).replace(".", ",")} €`;
-  const refAndando = ref.modos.length === 1 && ref.modos[0] === "andando";
-  return refAndando
-    ? `Pagando ${e} más te ahorras caminar ${ahorro} min`
-    : `Con ${e} adicionales recortas ${ahorro} min de trayecto`;
+  return `${e} más que el metro, pero ${ahorro} min más rápido`;
 }
 
 function Resultados() {
@@ -49,8 +47,8 @@ function Resultados() {
   }, [trip?.destino]);
 
   const ordenadas = useMemo(() => ordenarOpciones(opciones, criterio), [opciones, criterio]);
-  const masBarata = useMemo(
-    () => ordenadas.reduce<Opcion | null>((a, b) => (!a || b.precioEur < a.precioEur ? b : a), null),
+  const metroRef = useMemo(
+    () => ordenadas.find((o) => o.id === "simple-metro") ?? null,
     [ordenadas]
   );
 
@@ -136,7 +134,7 @@ function Resultados() {
               )}
 
               {(() => {
-                const v = fraseVenta(op, masBarata);
+                const v = fraseVenta(op, metroRef);
                 return v ? (
                   <div className="self-start bg-eco-bg text-eco-text rounded-full px-3 py-1 text-[12px] font-bold">
                     {v}
