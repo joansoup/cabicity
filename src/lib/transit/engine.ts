@@ -115,10 +115,11 @@ const SOSTENIBLE: Record<ModoTipo, boolean> = {
   andando: true, bicimad: true, metro: true, cercanias: true, ave: true, bus: true, cabify: false,
 };
 
-// Puntos Cabify Club por km de tramo sostenible: cuanto más sostenible el modo,
-// más puntos. Cabify (coche con conductor) no genera puntos.
+// Puntos Cabify Club por km. Los modos sostenibles dan más; Cabify (coche con
+// conductor) también suma puntos siempre, aunque en menor proporción, porque
+// el viaje se hace dentro del ecosistema Cabify.
 const PUNTOS_POR_KM: Record<ModoTipo, number> = {
-  andando: 12, bicimad: 9, metro: 6, cercanias: 6, bus: 5, ave: 4, cabify: 0,
+  andando: 12, bicimad: 9, metro: 6, cercanias: 6, bus: 5, ave: 4, cabify: 3,
 };
 
 const NOMBRES: Record<ModoTipo, string> = {
