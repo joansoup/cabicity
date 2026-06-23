@@ -288,6 +288,8 @@ export function MapaMapbox({
         }
       }
       mapRef.current = null;
+      mapboxRef.current = null;
+      mapLoadedRef.current = false;
       movingMarkerRef.current = null;
       vehiculoMarkerRef.current = null;
       vehiculoImgRef.current = null;
