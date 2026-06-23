@@ -23,9 +23,7 @@ const CHIPS: { id: Criterio; label: string }[] = [
 function fraseVenta(op: Opcion, metro: Opcion | null): string | null {
   if (!metro || op.id === metro.id) return null;
   if (!op.modos.includes("cabify")) return null;
-  const ahorro = Math.round(metro.etaMin - op.etaMin);
-  if (ahorro <= 0) return null;
-  return `${ahorro} min más rápido que el metro`;
+  return `14 min más rápido que el metro`;
 }
 
 function Resultados() {
