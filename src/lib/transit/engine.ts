@@ -281,14 +281,17 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
       tramos.push(t);
       publicoPrecio += MODOS[m].price(principalKm);
       publicoCo2 += MODOS[m].co2 * principalKm;
-      cashback += CASHBACK[m] * principalKm;
+      // Solo los tramos sostenibles aportan cashback.
+      if (SOSTENIBLE[m]) cashback += CASHBACK[m] * principalKm;
     }
   });
 
   const fee = modos.includes("ave") ? 4 : 0.5;
   const precio = round2(cabifyPrecio + publicoPrecio + fee);
   const co2 = round2(cabifyCo2 + publicoCo2);
-  cashback = round2(capCashback(cashback, interurbano));
+  // Una ruta es sostenible si al menos un tramo lo es; si no, no hay cashback.
+  const esSostenible = modos.some((m) => SOSTENIBLE[m]);
+  cashback = esSostenible ? round2(capCashback(cashback, interurbano)) : 0;
   const eta = tramos.reduce((s, t) => s + t.duracionMin, 0) + transbordos * 8;
 
   // insertar tramos de transbordo a pie ligeros (representativos)
