@@ -44,7 +44,7 @@ const IC_ENVIAR = `<svg width="24" height="24" viewBox="48 0 24 24" fill="none" 
 
 function HomePage() {
   const navigate = useNavigate();
-  const [servicio, setServicio] = useState("city");
+  const [servicio, setServicio] = useState("cabify");
 
   const goSearch = (destino?: string) => {
     setTrip({ origen: "Calle de Pradillo, 42, Chamartín, 28002 Madrid", destino: destino ?? "", criterio: "equilibrado" });
