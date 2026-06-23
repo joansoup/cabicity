@@ -5,7 +5,7 @@ import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, type TripState } from "@/lib/transit/store";
 import { categoriasParaOpcion } from "@/lib/transit/engine";
 import { buildRouteGeo, type LngLat } from "@/lib/transit/routeGeo";
-import { MapaMapbox, type MapaMarcador } from "@/components/transit/MapaMapbox";
+import { MapaMapbox, type MapaMarcador, type MapaRutaSegmento } from "@/components/transit/MapaMapbox";
 import { fmtEur } from "@/lib/transit/format";
 
 type Categoria = ReturnType<typeof categoriasParaOpcion>[number];
@@ -128,6 +128,12 @@ function RecogidaCabify() {
     ];
   }, [geo]);
 
+  // Línea morada Cabify desde el coche hasta el punto de recogida.
+  const rutaRecogida: MapaRutaSegmento[] = useMemo(() => {
+    if (!geo || !carPos) return [];
+    return [{ coords: [carPos, geo.origen], color: "#7145d6" }];
+  }, [geo, carPos]);
+
   if (!trip?.seleccionada || !op || !geo || !categoria || !carPos) {
     return (
       <PhoneFrame>
@@ -147,6 +153,7 @@ function RecogidaCabify() {
             centro={geo.origen}
             zoom={15}
             marcadores={marcadores}
+            ruta={rutaRecogida}
             ubicacionActual={geo.origen}
             vehiculo={{
               pos: carPos,
