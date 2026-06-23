@@ -79,7 +79,10 @@ function aplicarEstiloCabify(map: any) {
       if (l.type === "background") map.setPaintProperty(id, "background-color", "#f3f3f7");
       else if (l.type === "fill") {
         if (/water/i.test(id)) map.setPaintProperty(id, "fill-color", "#b0e5fe");
-        else if (/(park|green|grass|wood|landcover|pitch|golf|cemetery|scrub|garden|recreation|forest|national|vegetation|farmland)/i.test(id)) map.setPaintProperty(id, "fill-color", "#c4eba8");
+        else if (/(landuse|park|green|grass|wood|landcover|pitch|golf|cemetery|scrub|garden|recreation|forest|national|vegetation|farmland)/i.test(id)) {
+          map.setPaintProperty(id, "fill-color", "#bfe3a3");
+          try { map.setPaintProperty(id, "fill-opacity", 1); } catch { /* ignore */ }
+        }
         else if (/building/i.test(id)) map.setPaintProperty(id, "fill-color", "#e9eaf1");
         // (no agrisamos el resto: dejamos el claro por defecto del estilo light)
       } else if (l.type === "line") {
