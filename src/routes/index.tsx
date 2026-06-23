@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Search, Clock, Home, Star, Calendar, Send, Car } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { setTrip } from "@/lib/transit/store";
+import { getMapboxToken } from "@/lib/transit/routeGeo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
