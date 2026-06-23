@@ -115,10 +115,11 @@ const SOSTENIBLE: Record<ModoTipo, boolean> = {
   andando: true, bicimad: true, metro: true, cercanias: true, ave: true, bus: true, cabify: false,
 };
 
-// Puntos Cabify Club por km de tramo sostenible: cuanto más sostenible el modo,
-// más puntos. Cabify (coche con conductor) no genera puntos.
+// Puntos Cabify Club por km. Los modos sostenibles dan más; Cabify (coche con
+// conductor) también suma puntos siempre, aunque en menor proporción, porque
+// el viaje se hace dentro del ecosistema Cabify.
 const PUNTOS_POR_KM: Record<ModoTipo, number> = {
-  andando: 12, bicimad: 9, metro: 6, cercanias: 6, bus: 5, ave: 4, cabify: 0,
+  andando: 12, bicimad: 9, metro: 6, cercanias: 6, bus: 5, ave: 4, cabify: 3,
 };
 
 const NOMBRES: Record<ModoTipo, string> = {
@@ -250,10 +251,8 @@ function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
   const co2 = round2(m.co2 * distKm);
   const interurbano = distKm > 60;
   const esSostenible = SOSTENIBLE[tipo];
-  // Solo los modos sostenibles generan puntos Cabify Club.
-  const puntos = esSostenible
-    ? capPuntos(PUNTOS_POR_KM[tipo] * distKm, interurbano)
-    : 0;
+  // Todos los modos generan puntos Cabify Club (incluido Cabify).
+  const puntos = capPuntos(PUNTOS_POR_KM[tipo] * distKm, interurbano);
   let tramos: Tramo[];
   if (tipo === "cabify") {
     tramos = [tramoCabify(distKm, "Cabify directo a destino", "Trayecto en Cabify hasta tu destino")];
@@ -305,6 +304,7 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
       tramos.push(t);
       cabifyPrecio += MODOS.cabify.price(cabifyKm);
       cabifyCo2 += MODOS.cabify.co2 * cabifyKm;
+      puntos += PUNTOS_POR_KM.cabify * cabifyKm;
     } else {
       let t: Tramo;
       if (m === "metro") t = tramoMetro(principalKm, seed);
@@ -316,17 +316,16 @@ function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: 
       tramos.push(t);
       publicoPrecio += MODOS[m].price(principalKm);
       publicoCo2 += MODOS[m].co2 * principalKm;
-      // Solo los tramos sostenibles aportan puntos Cabify Club.
-      if (SOSTENIBLE[m]) puntos += PUNTOS_POR_KM[m] * principalKm;
+      puntos += PUNTOS_POR_KM[m] * principalKm;
     }
   });
 
   const fee = modos.includes("ave") ? 4 : 0.5;
   const precio = round2(cabifyPrecio + publicoPrecio + fee);
   const co2 = round2(cabifyCo2 + publicoCo2);
-  // Una ruta es sostenible si al menos un tramo lo es; si no, no hay cashback.
+  // Una ruta es sostenible si al menos un tramo lo es.
   const esSostenible = modos.some((m) => SOSTENIBLE[m]);
-  puntos = esSostenible ? capPuntos(puntos, interurbano) : 0;
+  puntos = capPuntos(puntos, interurbano);
   const eta = tramos.reduce((s, t) => s + t.duracionMin, 0) + transbordos * 8;
 
   // insertar tramos de transbordo a pie ligeros (representativos)
@@ -376,6 +375,29 @@ export function generarOpciones(destino: string): { distKm: number; opciones: Op
     if (distKm >= 7 && MODOS.cercanias.avail(distKm - 3.5)) {
       const c = opcionCombo(["cabify", "cercanias"], distKm, seed, "cabify-cercanias");
       if (c) opciones.push(c);
+    }
+  }
+
+  // Cabify siempre debe ser la opción más rápida del listado. Si por la
+  // distancia el metro u otro modo sale antes, ajustamos el etaMin del Cabify
+  // simple (y la duración del tramo de viaje) para garantizarlo visualmente.
+  const cabifySimple = opciones.find((o) => o.id === "simple-cabify");
+  if (cabifySimple) {
+    const minOtros = Math.min(
+      ...opciones.filter((o) => o !== cabifySimple).map((o) => o.etaMin),
+      Infinity
+    );
+    if (Number.isFinite(minOtros) && cabifySimple.etaMin >= minOtros) {
+      const objetivo = Math.max(2, minOtros - 1);
+      const delta = cabifySimple.etaMin - objetivo;
+      cabifySimple.etaMin = objetivo;
+      // Recortamos la duración del paso de trayecto (último) del único tramo.
+      const tramo = cabifySimple.tramos[0];
+      if (tramo) {
+        tramo.duracionMin = Math.max(1, tramo.duracionMin - delta);
+        const ultimoPaso = tramo.pasos[tramo.pasos.length - 1];
+        if (ultimoPaso) ultimoPaso.duracionMin = Math.max(1, ultimoPaso.duracionMin - delta);
+      }
     }
   }
 
