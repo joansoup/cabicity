@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, MapPin, Circle, Square, Clock, Home } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Home } from "lucide-react";
 import { PhoneFrame } from "@/components/transit/PhoneFrame";
 import { getTrip, setTrip } from "@/lib/transit/store";
 import { getMapboxToken } from "@/lib/transit/routeGeo";
@@ -88,7 +88,7 @@ function BuscarPage() {
           </button>
           <div className="flex-1 flex flex-col gap-2">
             <div className="flex items-center gap-3">
-              <Circle size={14} className="text-brand fill-brand" />
+              <img src="/icons/ic_set_address_1.svg" alt="" className="w-8 h-8 shrink-0" />
               <input
                 value={origen}
                 onChange={(e) => setOrigen(e.target.value)}
@@ -97,7 +97,7 @@ function BuscarPage() {
               />
             </div>
             <div className="flex items-center gap-3">
-              <Square size={14} className="text-text fill-text" />
+              <img src="/icons/ic_set_address_2.svg" alt="" className="w-8 h-8 shrink-0" />
               <input
                 autoFocus
                 value={destino}
