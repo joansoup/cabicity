@@ -7,7 +7,7 @@ import { clearTrip, getTrip, type TripState } from "@/lib/transit/store";
 import { fmtEur, fmtMin, fmtCo2 } from "@/lib/transit/format";
 import { ModoIcon } from "@/components/transit/ModoIcon";
 import type { Paso, Tramo } from "@/lib/transit/engine";
-import { buildRouteGeo } from "@/lib/transit/routeGeo";
+import { buildRouteGeo, type LngLat } from "@/lib/transit/routeGeo";
 import { MapaMapbox, type MapaRutaSegmento, type MapaMarcador } from "@/components/transit/MapaMapbox";
 import { speakRosalia } from "@/lib/tts.functions";
 
@@ -117,7 +117,22 @@ function Nav() {
     }));
   }, [geo]);
 
+  // Posiciones actual y siguiente, y rotación del coche. Calculados ANTES de
+  // cualquier early-return para no violar las Rules of Hooks (de lo contrario,
+  // el número de hooks cambia entre renders cuando el viaje aún no está cargado
+  // o cuando se llega al destino, provocando un error de React).
+  const currentPos: LngLat = geo?.stepPositions[idx] ?? geo?.destino ?? [0, 0];
+  const siguientePos: LngLat = geo?.stepPositions[idx + 1] ?? geo?.destino ?? [0, 0];
+  const rotCoche = useMemo(() => {
+    const dLng = siguientePos[0] - currentPos[0];
+    const dLat = siguientePos[1] - currentPos[1];
+    if (dLng === 0 && dLat === 0) return 0;
+    return (Math.atan2(dLng, dLat) * 180) / Math.PI - 90;
+  }, [currentPos, siguientePos]);
+
   if (!trip?.seleccionada || !actual || !op || !geo) return <PhoneFrame><div /></PhoneFrame>;
+
+  const enCabify = actual.tramo.tipo === "cabify";
 
   // CO2 ahorrado vs cabify total
   const cabifyTotalCo2 = 0.15 * (op.tramos.reduce((s, t) => s + t.distanciaKm, 0));
@@ -163,18 +178,6 @@ function Nav() {
       </PhoneFrame>
     );
   }
-
-  const currentPos = geo.stepPositions[idx] ?? geo.destino;
-  const enCabify = actual.tramo.tipo === "cabify";
-  // Rotación del coche: hacia el siguiente waypoint. -90 porque el SVG cenital
-  // apunta por defecto al este.
-  const siguientePos = geo.stepPositions[idx + 1] ?? geo.destino;
-  const rotCoche = useMemo(() => {
-    const dLng = siguientePos[0] - currentPos[0];
-    const dLat = siguientePos[1] - currentPos[1];
-    if (dLng === 0 && dLat === 0) return 0;
-    return (Math.atan2(dLng, dLat) * 180) / Math.PI - 90;
-  }, [currentPos, siguientePos]);
 
   return (
     <PhoneFrame>
