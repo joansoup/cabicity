@@ -31,7 +31,6 @@ function CategoriaCabify() {
   }, [trip?.seleccionada]);
 
   const elegida = categorias.find((c) => c.id === seleccion) ?? categorias[0];
-  const eco = categorias.find((c) => c.id === "eco");
 
   const continuar = () => {
     setTrip({ categoriaCabify: seleccion });
