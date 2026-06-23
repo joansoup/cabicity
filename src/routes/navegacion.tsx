@@ -136,8 +136,6 @@ function Nav() {
     );
   }
 
-  const mbToken = getMapboxToken();
-  const geo = useMemo(() => buildRouteGeo(op, trip.destino || op.id), [op, trip.destino]);
   const currentPos = geo.stepPositions[idx] ?? geo.destino;
 
   return (
