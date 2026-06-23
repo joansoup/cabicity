@@ -82,8 +82,14 @@ function Nav() {
     }
   };
 
-  if (!trip?.seleccionada || !actual) return <PhoneFrame><div /></PhoneFrame>;
-  const op = trip.seleccionada;
+  const op = trip?.seleccionada;
+  const mbToken = getMapboxToken();
+  const geo = useMemo(
+    () => (op ? buildRouteGeo(op, trip?.destino || op.id) : null),
+    [op, trip?.destino]
+  );
+
+  if (!trip?.seleccionada || !actual || !op || !geo) return <PhoneFrame><div /></PhoneFrame>;
 
   // CO2 ahorrado vs cabify total
   const cabifyTotalCo2 = 0.15 * (op.tramos.reduce((s, t) => s + t.distanciaKm, 0));
