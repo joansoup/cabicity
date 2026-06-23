@@ -155,8 +155,9 @@ function tramoCabify(distKm: number, titulo: string, instruccion: string): Tramo
   return {
     tipo: "cabify", titulo, duracionMin: duracion, distanciaKm: distKm,
     color: MODOS.cabify.color, icono: MODOS.cabify.icono,
+    // El paso de recogida se muestra en la pantalla /recogida-cabify, así que
+    // aquí arrancamos directamente con el trayecto en coche para no duplicar.
     pasos: [
-      { instruccion: "Tu Cabify llega en 3 min", duracionMin: 3 },
       { instruccion, duracionMin: duracion },
     ],
   };
