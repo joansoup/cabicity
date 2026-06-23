@@ -84,6 +84,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Comparador de movilidad intermodal de Cabify en Madrid." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Cabify Transit" },
+      { name: "twitter:description", content: "Comparador de movilidad intermodal de Cabify en Madrid." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/86c06b71-1f50-4ad3-9633-1a34082d633b/id-preview-adf36126--cd11862b-d70e-4b74-9308-d768a1d5e633.lovable.app-1782223326439.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/86c06b71-1f50-4ad3-9633-1a34082d633b/id-preview-adf36126--cd11862b-d70e-4b74-9308-d768a1d5e633.lovable.app-1782223326439.png" },
     ],
     links: [
       {
