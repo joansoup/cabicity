@@ -67,7 +67,7 @@ function HomePage() {
 
 
       {/* bottom sheet */}
-      <div className="absolute left-0 right-0 bottom-[58px] bg-surface rounded-t-[24px] pt-2 pb-6 flex flex-col gap-3" style={{ boxShadow: "var(--shadow-rised)" }}>
+      <div className="absolute left-0 right-0 bottom-[72px] bg-surface rounded-t-[24px] pt-2 pb-6 flex flex-col gap-3" style={{ boxShadow: "var(--shadow-rised)" }}>
         <div className="mx-auto h-1 w-9 rounded-full" style={{ background: "var(--sheet-handle)" }} />
         <h1 className="px-4 text-[18px] font-bold leading-6">Hola, Iván</h1>
 
@@ -131,7 +131,7 @@ function HomePage() {
       </div>
 
       {/* bottom nav con muesca (Union) + medalla central */}
-      <div className="absolute left-0 right-0 bottom-0 h-[84px] z-30">
+      <div className="absolute left-0 right-0 bottom-0 h-[100px] z-30">
         {/* forma blanca con bump central; llena hasta abajo para tapar el mapa */}
         <div className="absolute inset-0" dangerouslySetInnerHTML={{ __html: UNION_SVG }} />
 
@@ -144,13 +144,14 @@ function HomePage() {
         </div>
 
         {/* pestañas */}
-        <div className="absolute inset-x-0 top-[34px] flex items-start justify-between px-3">
+        <div className="absolute inset-x-0 top-[42px] flex items-start justify-between px-3">
           <NavTab label="Viajar" active svg={IC_VIAJAR} />
-          <div className="flex-1 flex justify-center pt-8">
+          <div className="flex-1 flex justify-center pt-9">
             <span className="text-[11px] font-medium text-text-secondary">Cabify Club</span>
           </div>
           <NavTab label="Enviar" svg={IC_ENVIAR} />
         </div>
+
 
         {/* home indicator */}
         <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 h-1 w-32 rounded-full bg-black/80" />
@@ -161,7 +162,7 @@ function HomePage() {
 
 function NavTab({ label, svg, active }: { label: string; svg: string; active?: boolean }) {
   return (
-    <button className="flex-1 flex flex-col items-center gap-1 pb-1.5">
+    <button className="flex-1 flex flex-col items-center gap-1.5 pb-3">
       <span className="w-6 h-6" dangerouslySetInnerHTML={{ __html: svg }} />
       <span className={`text-[11px] font-medium ${active ? "text-brand" : "text-text-secondary"}`}>{label}</span>
     </button>
