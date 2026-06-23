@@ -94,10 +94,7 @@ function Nav() {
   };
 
   const op = trip?.seleccionada;
-  const geo = useMemo(
-    () => (op ? buildRouteGeo(op, trip?.destino || op.id) : null),
-    [op, trip?.destino]
-  );
+  const geo = useSnappedRoute(op, trip?.destino);
 
   const rutaSegmentos: MapaRutaSegmento[] = useMemo(
     () =>
