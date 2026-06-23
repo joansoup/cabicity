@@ -273,8 +273,9 @@ function opcionSimple(tipo: ModoTipo, distKm: number, seed: number): Opcion {
 
 function opcionCombo(modos: ModoTipo[], distKm: number, seed: number, idSuffix: string): Opcion | null {
   const interurbano = distKm > 60;
-  // Cabify a estación: 3–4 km
-  const cabifyKm = 3.5;
+  // Cabify a estación: tramo first/last mile ajustado para que el precio total
+  // del combo cuadre con el dataset real (p. ej. Cabify+Metro ≈ 9,89 €).
+  const cabifyKm = 4.5;
   let principalKm: number;
   const ultimo = modos[modos.length - 1];
   const cabifyFinal = ultimo === "cabify" && modos.length > 1;

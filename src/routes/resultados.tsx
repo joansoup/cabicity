@@ -13,9 +13,9 @@ export const Route = createFileRoute("/resultados")({
 
 const CHIPS: { id: Criterio; label: string }[] = [
   { id: "equilibrado", label: "Equilibrado" },
-  { id: "rapido", label: "Más rápido" },
-  { id: "barato", label: "Más barato" },
-  { id: "ecologico", label: "Más ecológico" },
+  { id: "rapido", label: "Rápido" },
+  { id: "barato", label: "Barato" },
+  { id: "ecologico", label: "Ecológico" },
 ];
 
 function Resultados() {

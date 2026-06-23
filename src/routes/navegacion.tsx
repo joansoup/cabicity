@@ -74,6 +74,7 @@ function Nav() {
   }, [idx, llegado, voz]);
 
   const next = () => {
+    if (llegado) return; // evita que el temporizador y el botón disparen la llegada dos veces
     if (idx >= pasos.length - 1) {
       setLlegado(true);
       decir("Has llegado a tu destino");
