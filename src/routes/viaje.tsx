@@ -26,13 +26,16 @@ function Viaje() {
   return (
     <PhoneFrame>
       <div className="absolute inset-0 flex flex-col bg-bg-subdued">
-        <div className="px-3 pt-3 pb-3 bg-bg border-b border-border flex items-center gap-2">
-          <button onClick={() => navigate({ to: "/resultados" })} className="w-10 h-10 -ml-2 grid place-items-center">
+        <div className="px-4 pt-3 pb-3 bg-bg border-b border-border flex items-center gap-3">
+          <button
+            onClick={() => navigate({ to: "/resultados" })}
+            className="w-10 h-10 -ml-2 shrink-0 grid place-items-center rounded-full"
+          >
             <ArrowLeft size={22} />
           </button>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0 pr-1">
             <div className="text-[12px] text-text-secondary truncate">{trip.origen} → {trip.destino}</div>
-            <div className="text-[16px] font-bold text-text">{op.nombre}</div>
+            <div className="text-[16px] font-bold text-text truncate">{op.nombre}</div>
           </div>
         </div>
 
