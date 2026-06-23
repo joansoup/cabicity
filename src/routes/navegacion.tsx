@@ -83,11 +83,29 @@ function Nav() {
   };
 
   const op = trip?.seleccionada;
-  const mbToken = getMapboxToken();
   const geo = useMemo(
     () => (op ? buildRouteGeo(op, trip?.destino || op.id) : null),
     [op, trip?.destino]
   );
+
+  const rutaSegmentos: MapaRutaSegmento[] = useMemo(
+    () =>
+      geo
+        ? geo.segments.map((s) => ({
+            coords: s.coords,
+            dashed: s.tipo === "andando",
+          }))
+        : [],
+    [geo]
+  );
+
+  const marcadores: MapaMarcador[] = useMemo(() => {
+    if (!geo) return [];
+    return geo.stops.map((pos, i) => ({
+      pos,
+      tamano: i === 0 || i === geo.stops.length - 1 ? 16 : 12,
+    }));
+  }, [geo]);
 
   if (!trip?.seleccionada || !actual || !op || !geo) return <PhoneFrame><div /></PhoneFrame>;
 
